@@ -9,12 +9,21 @@ struct CompareView: View {
             compareToolbar
             Divider()
 
-            // Compare content area
+            // Compare content area + summary panel
             if viewModel.isComparing {
                 ProgressView("Comparing...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if viewModel.hasDocuments {
-                compareContent
+                HSplitView {
+                    compareContent
+                        .frame(minWidth: 400)
+
+                    DiffSummaryPanel(
+                        diffResult: viewModel.diffResult,
+                        structuralDiff: viewModel.structuralDiff
+                    )
+                    .frame(minWidth: 200, idealWidth: 280, maxWidth: 350)
+                }
             } else {
                 Text("Select two documents to compare")
                     .foregroundStyle(.secondary)
