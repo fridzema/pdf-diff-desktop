@@ -76,12 +76,69 @@ impl PdfDocumentHandle for MuPdfDocument {
         })
     }
 
-    fn render_page(&self, _page: u32, _dpi: u32, _colorspace: &RenderColorspace) -> Result<RenderedPage, PdfError> {
-        todo!("Implemented in Task 4")
+    fn render_page(&self, page: u32, dpi: u32, colorspace: &RenderColorspace) -> Result<RenderedPage, PdfError> {
+        let total = self.page_count();
+        if page >= total {
+            return Err(PdfError::PageOutOfRange { requested: page, total });
+        }
+
+        let pdf_page = self.doc.load_page(page as i32).map_err(|e| {
+            PdfError::RenderingFailed { detail: e.to_string() }
+        })?;
+
+        let scale = dpi as f32 / 72.0;
+        let matrix = mupdf::Matrix::new_scale(scale, scale);
+
+        let cs = match colorspace {
+            RenderColorspace::Rgb => mupdf::Colorspace::device_rgb(),
+            RenderColorspace::Cmyk => mupdf::Colorspace::device_cmyk(),
+        };
+
+        let pixmap = pdf_page.to_pixmap(&matrix, &cs, true, true).map_err(|e| {
+            PdfError::RenderingFailed { detail: e.to_string() }
+        })?;
+
+        let width = pixmap.width();
+        let height = pixmap.height();
+        let samples = pixmap.samples().to_vec();
+
+        Ok(RenderedPage {
+            bitmap: samples,
+            width,
+            height,
+            colorspace: colorspace.clone(),
+        })
     }
 
     fn pages_metadata(&self) -> Result<Vec<PageMetadata>, PdfError> {
-        todo!("Implemented in Task 4")
+        let count = self.page_count();
+        let mut pages = Vec::with_capacity(count as usize);
+
+        for i in 0..count {
+            let page = self.doc.load_page(i as i32).map_err(|e| {
+                PdfError::RenderingFailed { detail: e.to_string() }
+            })?;
+
+            let bounds = page.bounds().map_err(|e| {
+                PdfError::RenderingFailed { detail: e.to_string() }
+            })?;
+
+            let width_pt = (bounds.x1 - bounds.x0) as f64;
+            let height_pt = (bounds.y1 - bounds.y0) as f64;
+
+            pages.push(PageMetadata {
+                page_number: i,
+                width_pt,
+                height_pt,
+                rotation: 0, // MuPDF applies rotation during rendering
+                has_transparency: false,
+                colorspaces_used: Vec::new(),
+                font_names: Vec::new(), // Font enumeration requires deeper MuPDF access
+                image_count: 0,
+            });
+        }
+
+        Ok(pages)
     }
 
     fn layers(&self) -> Result<Vec<Layer>, PdfError> {

@@ -37,3 +37,54 @@ fn test_metadata_extraction() {
     assert!(!meta.pdf_version.is_empty());
     assert!(!meta.is_encrypted);
 }
+
+#[test]
+fn test_render_page_rgb() {
+    let fixture = helpers::fixture_path("simple.pdf");
+    if !fixture.exists() {
+        helpers::create_simple_pdf(&fixture);
+    }
+
+    let engine = MuPdfEngine::new();
+    let doc = engine.open(fixture.to_str().unwrap()).unwrap();
+
+    use pdf_diff_core::types::RenderColorspace;
+    let rendered = doc.render_page(0, 72, &RenderColorspace::Rgb).unwrap();
+
+    assert!(rendered.width > 0);
+    assert!(rendered.height > 0);
+    assert!(!rendered.bitmap.is_empty());
+    // RGB at 72 DPI with alpha: 4 bytes per pixel (RGBA)
+    assert_eq!(rendered.bitmap.len(), (rendered.width * rendered.height * 4) as usize);
+}
+
+#[test]
+fn test_render_page_out_of_range() {
+    let fixture = helpers::fixture_path("simple.pdf");
+    if !fixture.exists() {
+        helpers::create_simple_pdf(&fixture);
+    }
+
+    let engine = MuPdfEngine::new();
+    let doc = engine.open(fixture.to_str().unwrap()).unwrap();
+
+    let result = doc.render_page(99, 72, &pdf_diff_core::types::RenderColorspace::Rgb);
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_pages_metadata() {
+    let fixture = helpers::fixture_path("simple.pdf");
+    if !fixture.exists() {
+        helpers::create_simple_pdf(&fixture);
+    }
+
+    let engine = MuPdfEngine::new();
+    let doc = engine.open(fixture.to_str().unwrap()).unwrap();
+    let pages = doc.pages_metadata().unwrap();
+
+    assert_eq!(pages.len(), 1);
+    assert_eq!(pages[0].page_number, 0);
+    assert!(pages[0].width_pt > 0.0);
+    assert!(pages[0].height_pt > 0.0);
+}
