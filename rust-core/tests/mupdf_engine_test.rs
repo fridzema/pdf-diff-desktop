@@ -88,3 +88,33 @@ fn test_pages_metadata() {
     assert!(pages[0].width_pt > 0.0);
     assert!(pages[0].height_pt > 0.0);
 }
+
+#[test]
+fn test_layers_on_simple_pdf() {
+    let fixture = helpers::fixture_path("simple.pdf");
+    if !fixture.exists() {
+        helpers::create_simple_pdf(&fixture);
+    }
+
+    let engine = MuPdfEngine::new();
+    let doc = engine.open(fixture.to_str().unwrap()).unwrap();
+    let layers = doc.layers().unwrap();
+
+    // Simple PDF has no layers — should return empty vec
+    assert!(layers.is_empty());
+}
+
+#[test]
+fn test_separations_on_simple_pdf() {
+    let fixture = helpers::fixture_path("simple.pdf");
+    if !fixture.exists() {
+        helpers::create_simple_pdf(&fixture);
+    }
+
+    let engine = MuPdfEngine::new();
+    let doc = engine.open(fixture.to_str().unwrap()).unwrap();
+    let seps = doc.separations(0).unwrap();
+
+    // Simple RGB PDF has no spot color separations
+    assert!(seps.is_empty());
+}

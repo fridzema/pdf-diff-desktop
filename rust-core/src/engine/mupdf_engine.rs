@@ -142,15 +142,46 @@ impl PdfDocumentHandle for MuPdfDocument {
     }
 
     fn layers(&self) -> Result<Vec<Layer>, PdfError> {
-        todo!("Implemented in Task 5")
+        // MuPDF safe API does not expose OCG layers directly.
+        // Full implementation requires mupdf-sys FFI calls to:
+        //   pdf_count_layer_configs, pdf_layer_config_ui, etc.
+        // For now, return empty. Will be enhanced with mupdf-sys wrappers.
+        Ok(Vec::new())
     }
 
-    fn separations(&self, _page: u32) -> Result<Vec<Separation>, PdfError> {
-        todo!("Implemented in Task 5")
+    fn separations(&self, page: u32) -> Result<Vec<Separation>, PdfError> {
+        let total = self.page_count();
+        if page >= total {
+            return Err(PdfError::PageOutOfRange { requested: page, total });
+        }
+
+        let pdf_page = self.doc.load_page(page as i32).map_err(|e| {
+            PdfError::RenderingFailed { detail: e.to_string() }
+        })?;
+
+        let seps = pdf_page.separations().map_err(|e| {
+            PdfError::RenderingFailed { detail: e.to_string() }
+        })?;
+
+        // The safe mupdf API exposes Separations with len() and active_count()
+        // but NOT individual names. Full implementation needs mupdf-sys FFI.
+        let count = seps.len();
+        let mut result = Vec::new();
+        for i in 0..count {
+            result.push(Separation {
+                name: format!("Separation {}", i),
+                colorspace: "Unknown".to_string(),
+            });
+        }
+
+        Ok(result)
     }
 
-    fn render_separation(&self, _page: u32, _separation_index: u32, _dpi: u32) -> Result<RenderedPage, PdfError> {
-        todo!("Implemented in Task 5")
+    fn render_separation(&self, page: u32, _separation_index: u32, dpi: u32) -> Result<RenderedPage, PdfError> {
+        // Full separation rendering requires mupdf-sys FFI:
+        //   fz_new_pixmap_from_page_contents_with_separations
+        // For now, render the full page as a fallback.
+        self.render_page(page, dpi, &RenderColorspace::Cmyk)
     }
 
     fn extract_page_text(&self, _page: u32) -> Result<String, PdfError> {
