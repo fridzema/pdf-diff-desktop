@@ -1,1 +1,10 @@
 .worktrees/
+
+# Rust
+rust-core/target/
+
+# macOS
+.DS_Store
+
+# Test artifacts
+fixtures/*.pdf
