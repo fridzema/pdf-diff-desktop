@@ -184,7 +184,22 @@ impl PdfDocumentHandle for MuPdfDocument {
         self.render_page(page, dpi, &RenderColorspace::Cmyk)
     }
 
-    fn extract_page_text(&self, _page: u32) -> Result<String, PdfError> {
-        todo!("Implemented in Task 6")
+    fn extract_page_text(&self, page: u32) -> Result<String, PdfError> {
+        let total = self.page_count();
+        if page >= total {
+            return Err(PdfError::PageOutOfRange { requested: page, total });
+        }
+
+        let pdf_page = self.doc.load_page(page as i32).map_err(|e| {
+            PdfError::RenderingFailed { detail: e.to_string() }
+        })?;
+
+        let text_page = pdf_page.to_text_page(mupdf::TextPageFlags::empty()).map_err(|e| {
+            PdfError::RenderingFailed { detail: e.to_string() }
+        })?;
+
+        text_page.to_text().map_err(|e| {
+            PdfError::RenderingFailed { detail: e.to_string() }
+        })
     }
 }
