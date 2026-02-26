@@ -1,1 +1,18 @@
 .worktrees/
+
+# Rust
+rust-core/target/
+
+# macOS
+.DS_Store
+
+# UniFFI generated
+generated/
+
+# Xcode
+PdfDiffApp/build/
+PdfDiffApp/DerivedData/
+*.xcuserdata
+
+# Test artifacts
+fixtures/*.pdf
