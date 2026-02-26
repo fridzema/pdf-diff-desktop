@@ -163,12 +163,36 @@ struct CompareView: View {
     private var compareContent: some View {
         switch viewModel.compareMode {
         case .overlay:
-            AnimatedOverlayView(
-                leftImage: viewModel.leftImage,
-                rightImage: viewModel.rightImage,
-                zoomLevel: $viewModel.zoomLevel,
-                panOffset: $viewModel.panOffset
-            )
+            VStack(spacing: 0) {
+                // Sub-mode picker
+                Picker("", selection: $viewModel.overlaySubMode) {
+                    ForEach(CompareViewModel.OverlaySubMode.allCases, id: \.self) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 160)
+                .padding(.vertical, 6)
+
+                switch viewModel.overlaySubMode {
+                case .blink:
+                    AnimatedOverlayView(
+                        leftImage: viewModel.leftImage,
+                        rightImage: viewModel.rightImage,
+                        zoomLevel: $viewModel.zoomLevel,
+                        panOffset: $viewModel.panOffset
+                    )
+                case .diff:
+                    DiffOverlayView(
+                        leftImage: viewModel.leftImage,
+                        diffImage: viewModel.diffResult?.diffImage,
+                        overlayColor: $viewModel.diffOverlayColor,
+                        overlayOpacity: $viewModel.diffOverlayOpacity,
+                        zoomLevel: $viewModel.zoomLevel,
+                        panOffset: $viewModel.panOffset
+                    )
+                }
+            }
         case .sideBySide:
             SideBySideView(
                 leftImage: viewModel.leftImage,

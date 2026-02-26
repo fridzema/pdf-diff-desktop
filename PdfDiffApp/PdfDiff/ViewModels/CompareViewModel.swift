@@ -9,6 +9,15 @@ final class CompareViewModel {
         case onionSkin = "Onion Skin"
     }
 
+    enum OverlaySubMode: String, CaseIterable {
+        case blink = "Blink"
+        case diff = "Diff"
+    }
+
+    var overlaySubMode: OverlaySubMode = .blink
+    var diffOverlayColor: Color = .red
+    var diffOverlayOpacity: Double = 0.5
+
     var leftDocument: OpenedDocument?
     var rightDocument: OpenedDocument?
     var currentPage: UInt32 = 0
