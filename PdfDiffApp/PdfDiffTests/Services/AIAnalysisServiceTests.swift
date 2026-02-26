@@ -60,4 +60,56 @@ struct AIAnalysisServiceTests {
             #expect((error as NSError).code == 401)
         }
     }
+
+    @Test("AIAnalysisResult parses from valid OpenRouter JSON response")
+    func parsesValidResponse() throws {
+        let json = """
+        {
+            "visual_changes": "The logo was moved 5mm left",
+            "text_comparison": "Disclaimer paragraph was reworded",
+            "qc_checklist": [
+                {"check": "Bleed", "status": "pass", "detail": "3mm bleed present"},
+                {"check": "Resolution", "status": "warn", "detail": "Logo is 150dpi, recommended 300dpi"}
+            ],
+            "anomalies": "No issues found"
+        }
+        """.data(using: .utf8)!
+
+        let parsed = try OpenRouterAIService.parseAnalysisResponse(json)
+        #expect(parsed.visualChanges == "The logo was moved 5mm left")
+        #expect(parsed.textComparison == "Disclaimer paragraph was reworded")
+        #expect(parsed.qcChecklist.count == 2)
+        #expect(parsed.qcChecklist[0].status == .pass)
+        #expect(parsed.qcChecklist[1].status == .warn)
+        #expect(parsed.anomalies == "No issues found")
+    }
+
+    @Test("parseAnalysisResponse handles missing fields gracefully")
+    func parsesMissingFields() throws {
+        let json = """
+        {
+            "visual_changes": "Something changed"
+        }
+        """.data(using: .utf8)!
+
+        let parsed = try OpenRouterAIService.parseAnalysisResponse(json)
+        #expect(parsed.visualChanges == "Something changed")
+        #expect(parsed.textComparison.isEmpty)
+        #expect(parsed.qcChecklist.isEmpty)
+        #expect(parsed.anomalies.isEmpty)
+    }
+
+    @Test("encodeImageToBase64 produces valid base64 string")
+    func encodesImage() throws {
+        let image = NSImage(size: NSSize(width: 100, height: 100))
+        image.lockFocus()
+        NSColor.red.setFill()
+        NSRect(origin: .zero, size: NSSize(width: 100, height: 100)).fill()
+        image.unlockFocus()
+
+        let base64 = try OpenRouterAIService.encodeImageToBase64(image, maxBytes: 1_000_000)
+        #expect(!base64.isEmpty)
+        // Verify it's valid base64 by decoding
+        #expect(Data(base64Encoded: base64) != nil)
+    }
 }
