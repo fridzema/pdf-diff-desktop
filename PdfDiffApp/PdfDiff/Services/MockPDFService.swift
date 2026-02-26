@@ -11,45 +11,52 @@ final class MockPDFService: PDFServiceProtocol, @unchecked Sendable {
     func openDocument(path: String) throws -> OpenedDocument {
         if shouldThrow { throw NSError(domain: "Mock", code: 1) }
 
-        guard let pdfDoc = PDFDocument(url: URL(fileURLWithPath: path)) else {
-            throw NSError(domain: "PDFService", code: 2, userInfo: [
-                NSLocalizedDescriptionKey: "Could not open PDF at \(path)"
-            ])
+        if let pdfDoc = PDFDocument(url: URL(fileURLWithPath: path)) {
+            pdfDocuments[path] = pdfDoc
+            return OpenedDocument(
+                path: path,
+                fileName: URL(fileURLWithPath: path).lastPathComponent,
+                pageCount: UInt32(pdfDoc.pageCount)
+            )
         }
 
-        pdfDocuments[path] = pdfDoc
-
+        // Fallback for test paths that don't exist on disk
         return OpenedDocument(
             path: path,
             fileName: URL(fileURLWithPath: path).lastPathComponent,
-            pageCount: UInt32(pdfDoc.pageCount)
+            pageCount: 3
         )
     }
 
     func renderPage(document: OpenedDocument, page: UInt32, dpi: UInt32) throws -> RenderedBitmap {
-        guard let pdfDoc = pdfDocuments[document.path],
-              let pdfPage = pdfDoc.page(at: Int(page)) else {
-            throw NSError(domain: "PDFService", code: 3, userInfo: [
-                NSLocalizedDescriptionKey: "Page \(page) not available"
-            ])
+        if let pdfDoc = pdfDocuments[document.path],
+           let pdfPage = pdfDoc.page(at: Int(page)) {
+            let pageRect = pdfPage.bounds(for: .mediaBox)
+            let scale = CGFloat(dpi) / 72.0
+            let width = pageRect.width * scale
+            let height = pageRect.height * scale
+
+            let image = NSImage(size: NSSize(width: width, height: height))
+            image.lockFocus()
+            if let ctx = NSGraphicsContext.current {
+                ctx.cgContext.setFillColor(NSColor.white.cgColor)
+                ctx.cgContext.fill(CGRect(origin: .zero, size: NSSize(width: width, height: height)))
+                ctx.cgContext.scaleBy(x: scale, y: scale)
+                pdfPage.draw(with: .mediaBox, to: ctx.cgContext)
+            }
+            image.unlockFocus()
+
+            return RenderedBitmap(image: image, width: UInt32(width), height: UInt32(height))
         }
 
-        let pageRect = pdfPage.bounds(for: .mediaBox)
-        let scale = CGFloat(dpi) / 72.0
-        let width = pageRect.width * scale
-        let height = pageRect.height * scale
-
-        let image = NSImage(size: NSSize(width: width, height: height))
+        // Fallback mock rendering for test paths
+        let size = NSSize(width: 100, height: 100)
+        let image = NSImage(size: size)
         image.lockFocus()
-        if let ctx = NSGraphicsContext.current {
-            ctx.cgContext.setFillColor(NSColor.white.cgColor)
-            ctx.cgContext.fill(CGRect(origin: .zero, size: NSSize(width: width, height: height)))
-            ctx.cgContext.scaleBy(x: scale, y: scale)
-            pdfPage.draw(with: .mediaBox, to: ctx.cgContext)
-        }
+        NSColor.white.setFill()
+        NSRect(origin: .zero, size: size).fill()
         image.unlockFocus()
-
-        return RenderedBitmap(image: image, width: UInt32(width), height: UInt32(height))
+        return RenderedBitmap(image: image, width: 100, height: 100)
     }
 
     func metadata(document: OpenedDocument) throws -> PDFMetadata {
