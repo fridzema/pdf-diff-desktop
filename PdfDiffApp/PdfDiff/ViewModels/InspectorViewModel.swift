@@ -11,9 +11,6 @@ final class InspectorViewModel {
     var isRendering = false
     var errorMessage: String?
 
-    enum Tab: String, CaseIterable { case inspector, compare, separations }
-    var selectedTab: Tab = .inspector
-
     private let pdfService: PDFServiceProtocol
 
     init(pdfService: PDFServiceProtocol) {
