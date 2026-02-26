@@ -322,6 +322,7 @@ struct DiffSummaryPanel: View {
             Text(text)
                 .font(.caption)
                 .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 4)
         } label: {
             Label("Visual Changes", systemImage: "eye")
@@ -335,6 +336,7 @@ struct DiffSummaryPanel: View {
             Text(text)
                 .font(.caption)
                 .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 4)
         } label: {
             Label("Text Comparison", systemImage: "text.magnifyingglass")
@@ -361,6 +363,7 @@ struct DiffSummaryPanel: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 4)
         } label: {
             Label("Prepress QC", systemImage: "checklist")
@@ -371,7 +374,7 @@ struct DiffSummaryPanel: View {
     @ViewBuilder
     private func aiAnomaliesSection(_ text: String) -> some View {
         DisclosureGroup(isExpanded: $isAnomaliesExpanded) {
-            HStack {
+            VStack(alignment: .leading) {
                 if text != "No issues found" {
                     Text(text)
                         .font(.caption)
@@ -384,6 +387,7 @@ struct DiffSummaryPanel: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 4)
         } label: {
             Label("Anomalies", systemImage: "exclamationmark.triangle")
