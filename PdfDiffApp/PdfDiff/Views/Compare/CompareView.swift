@@ -3,6 +3,7 @@ import SwiftUI
 struct CompareView: View {
     @State var viewModel: CompareViewModel
     var findDocument: ((String) -> OpenedDocument?)? = nil
+    var openFileAtPath: ((String) -> OpenedDocument?)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -53,7 +54,7 @@ struct CompareView: View {
                 label: "Left",
                 document: viewModel.leftDocument,
                 onDrop: { path in
-                    if let doc = findDocument?(path) {
+                    if let doc = findDocument?(path) ?? openFileAtPath?(path) {
                         viewModel.setLeftDocument(doc)
                     }
                 },
@@ -73,7 +74,7 @@ struct CompareView: View {
                 label: "Right",
                 document: viewModel.rightDocument,
                 onDrop: { path in
-                    if let doc = findDocument?(path) {
+                    if let doc = findDocument?(path) ?? openFileAtPath?(path) {
                         viewModel.setRightDocument(doc)
                     }
                 },

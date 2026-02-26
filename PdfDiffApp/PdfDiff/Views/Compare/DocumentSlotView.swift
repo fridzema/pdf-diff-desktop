@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct DocumentSlotView: View {
     let label: String
@@ -7,6 +8,7 @@ struct DocumentSlotView: View {
     let onClear: () -> Void
 
     @State private var isTargeted = false
+    @State private var dropFailed = false
 
     var body: some View {
         VStack(spacing: 6) {
@@ -57,7 +59,7 @@ struct DocumentSlotView: View {
                 .background(
                     RoundedRectangle(cornerRadius: 8)
                         .strokeBorder(
-                            isTargeted ? Color.accentColor : Color.secondary.opacity(0.3),
+                            dropFailed ? Color.red : (isTargeted ? Color.accentColor : Color.secondary.opacity(0.3)),
                             style: StrokeStyle(lineWidth: isTargeted ? 2 : 1, dash: [6])
                         )
                         .background(
@@ -67,17 +69,40 @@ struct DocumentSlotView: View {
                 )
             }
         }
-        .onDrop(of: [.utf8PlainText], isTargeted: $isTargeted) { providers in
-            for provider in providers {
-                _ = provider.loadObject(ofClass: String.self) { path, _ in
-                    if let path {
-                        DispatchQueue.main.async {
-                            onDrop(path)
-                        }
+        .onDrop(of: [.fileURL, .utf8PlainText], isTargeted: $isTargeted) { providers in
+            handleDrop(providers: providers)
+            return true
+        }
+    }
+
+    private func handleDrop(providers: [NSItemProvider]) {
+        // Try file URL first (Finder drops)
+        for provider in providers {
+            if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
+                _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                    guard let url, url.pathExtension.lowercased() == "pdf" else {
+                        DispatchQueue.main.async { flashDropFailed() }
+                        return
                     }
+                    DispatchQueue.main.async { onDrop(url.path) }
+                }
+                return
+            }
+        }
+        // Fall back to plain text (sidebar drags)
+        for provider in providers {
+            _ = provider.loadObject(ofClass: String.self) { path, _ in
+                if let path {
+                    DispatchQueue.main.async { onDrop(path) }
                 }
             }
-            return true
+        }
+    }
+
+    private func flashDropFailed() {
+        dropFailed = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            dropFailed = false
         }
     }
 }

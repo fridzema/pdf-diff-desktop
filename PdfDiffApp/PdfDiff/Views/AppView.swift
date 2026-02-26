@@ -53,7 +53,12 @@ struct DetailAreaView: View {
             case .compare:
                 CompareView(
                     viewModel: viewModel.compareViewModel,
-                    findDocument: { viewModel.document(forPath: $0) }
+                    findDocument: { viewModel.document(forPath: $0) },
+                    openFileAtPath: { path in
+                        let url = URL(fileURLWithPath: path)
+                        viewModel.openFiles(urls: [url])
+                        return viewModel.document(forPath: path)
+                    }
                 )
             }
         }
