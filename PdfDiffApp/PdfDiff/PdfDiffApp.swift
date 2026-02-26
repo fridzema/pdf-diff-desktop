@@ -3,10 +3,15 @@ import SwiftUI
 @main
 struct PdfDiffApp: App {
     @State private var viewModel = AppViewModel(pdfService: MockPDFService())
+    @State private var settingsManager = SettingsManager()
 
     var body: some Scene {
         WindowGroup {
             AppView(viewModel: viewModel)
+                .environment(settingsManager)
+        }
+        Settings {
+            SettingsView(settingsManager: settingsManager)
         }
         .commands {
             CommandGroup(after: .newItem) {
