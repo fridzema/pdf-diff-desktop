@@ -3,24 +3,28 @@ import SwiftUI
 struct OnionSkinView: View {
     let leftImage: NSImage?
     let rightImage: NSImage?
+    @Binding var zoomLevel: CGFloat
+    @Binding var panOffset: CGSize
 
     @State private var opacity: Double = 0.5
 
     var body: some View {
         VStack(spacing: 0) {
             // Onion skin canvas
-            ZStack {
-                if let leftImage {
-                    Image(nsImage: leftImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                }
+            ZoomableContainer(zoom: $zoomLevel, offset: $panOffset) {
+                ZStack {
+                    if let leftImage {
+                        Image(nsImage: leftImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    }
 
-                if let rightImage {
-                    Image(nsImage: rightImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .opacity(opacity)
+                    if let rightImage {
+                        Image(nsImage: rightImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .opacity(opacity)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

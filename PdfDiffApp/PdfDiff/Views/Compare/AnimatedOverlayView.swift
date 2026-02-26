@@ -3,6 +3,8 @@ import SwiftUI
 struct AnimatedOverlayView: View {
     let leftImage: NSImage?
     let rightImage: NSImage?
+    @Binding var zoomLevel: CGFloat
+    @Binding var panOffset: CGSize
 
     @State private var showingLeft = true
     @State private var isPlaying = true
@@ -14,18 +16,20 @@ struct AnimatedOverlayView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Blink canvas
-            ZStack {
-                if showingLeft, let leftImage {
-                    Image(nsImage: leftImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                } else if !showingLeft, let rightImage {
-                    Image(nsImage: rightImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                } else {
-                    Text("No images to compare")
-                        .foregroundStyle(.secondary)
+            ZoomableContainer(zoom: $zoomLevel, offset: $panOffset) {
+                ZStack {
+                    if showingLeft, let leftImage {
+                        Image(nsImage: leftImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    } else if !showingLeft, let rightImage {
+                        Image(nsImage: rightImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    } else {
+                        Text("No images to compare")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

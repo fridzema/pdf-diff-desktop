@@ -165,24 +165,32 @@ struct CompareView: View {
         case .overlay:
             AnimatedOverlayView(
                 leftImage: viewModel.leftImage,
-                rightImage: viewModel.rightImage
+                rightImage: viewModel.rightImage,
+                zoomLevel: $viewModel.zoomLevel,
+                panOffset: $viewModel.panOffset
             )
         case .sideBySide:
             SideBySideView(
                 leftImage: viewModel.leftImage,
                 rightImage: viewModel.rightImage,
                 leftLabel: viewModel.leftDocument?.fileName,
-                rightLabel: viewModel.rightDocument?.fileName
+                rightLabel: viewModel.rightDocument?.fileName,
+                zoomLevel: $viewModel.zoomLevel,
+                panOffset: $viewModel.panOffset
             )
         case .swipe:
             SwipeView(
                 leftImage: viewModel.leftImage,
-                rightImage: viewModel.rightImage
+                rightImage: viewModel.rightImage,
+                zoomLevel: $viewModel.zoomLevel,
+                panOffset: $viewModel.panOffset
             )
         case .onionSkin:
             OnionSkinView(
                 leftImage: viewModel.leftImage,
-                rightImage: viewModel.rightImage
+                rightImage: viewModel.rightImage,
+                zoomLevel: $viewModel.zoomLevel,
+                panOffset: $viewModel.panOffset
             )
         }
     }
