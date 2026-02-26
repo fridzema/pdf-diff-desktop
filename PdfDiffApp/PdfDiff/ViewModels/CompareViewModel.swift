@@ -4,8 +4,8 @@ import AppKit
 @Observable @MainActor
 final class CompareViewModel {
     enum CompareMode: String, CaseIterable {
-        case sideBySide = "Side by Side"
         case overlay = "Overlay"
+        case sideBySide = "Side by Side"
         case swipe = "Swipe"
         case onionSkin = "Onion Skin"
     }
@@ -13,7 +13,7 @@ final class CompareViewModel {
     var leftDocument: OpenedDocument?
     var rightDocument: OpenedDocument?
     var currentPage: UInt32 = 0
-    var compareMode: CompareMode = .sideBySide
+    var compareMode: CompareMode = .overlay
     var sensitivity: Float = 0.1
     var isComparing = false
     var errorMessage: String?
@@ -23,7 +23,7 @@ final class CompareViewModel {
     var diffResult: PDFDiffResult?
     var structuralDiff: PDFStructuralDiffResult?
 
-    private let pdfService: PDFServiceProtocol
+    let pdfService: PDFServiceProtocol
 
     init(pdfService: PDFServiceProtocol) {
         self.pdfService = pdfService
@@ -45,8 +45,50 @@ final class CompareViewModel {
         await renderAndDiff()
     }
 
+    func setLeftDocument(_ doc: OpenedDocument) {
+        leftDocument = doc
+        if hasDocuments {
+            currentPage = 0
+            Task { await renderAndDiff() }
+        }
+    }
+
+    func setRightDocument(_ doc: OpenedDocument) {
+        rightDocument = doc
+        if hasDocuments {
+            currentPage = 0
+            Task { await renderAndDiff() }
+        }
+    }
+
+    func clearLeftDocument() {
+        leftDocument = nil
+        leftImage = nil
+        diffResult = nil
+        structuralDiff = nil
+    }
+
+    func clearRightDocument() {
+        rightDocument = nil
+        rightImage = nil
+        diffResult = nil
+        structuralDiff = nil
+    }
+
+    func swapDocuments() {
+        let temp = leftDocument
+        leftDocument = rightDocument
+        rightDocument = temp
+        let tempImg = leftImage
+        leftImage = rightImage
+        rightImage = tempImg
+        if hasDocuments {
+            Task { await renderAndDiff() }
+        }
+    }
+
     func nextPage() {
-        guard currentPage < maxPageCount - 1 else { return }
+        guard maxPageCount > 0, currentPage < maxPageCount - 1 else { return }
         currentPage += 1
         Task { await renderAndDiff() }
     }
