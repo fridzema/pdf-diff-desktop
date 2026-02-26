@@ -1,0 +1,50 @@
+name: PdfDiff
+options:
+  bundleIdPrefix: com.pdfdiff
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+
+targets:
+  PdfDiff:
+    type: application
+    platform: macOS
+    sources:
+      - path: PdfDiff
+        excludes:
+          - "**/*.xcassets"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.pdfdiff.PdfDiff
+        PRODUCT_NAME: PdfDiff
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        SWIFT_VERSION: "5.10"
+        INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.productivity"
+    info:
+      path: PdfDiff/Info.plist
+      properties:
+        CFBundleDisplayName: PDF Diff
+        CFBundleName: PdfDiff
+        CFBundlePackageType: APPL
+        LSMinimumSystemVersion: "14.0"
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: PDF Document
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes:
+              - com.adobe.pdf
+
+  PdfDiffTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: PdfDiffTests
+    dependencies:
+      - target: PdfDiff
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.pdfdiff.PdfDiffTests
+        SWIFT_VERSION: "5.10"
