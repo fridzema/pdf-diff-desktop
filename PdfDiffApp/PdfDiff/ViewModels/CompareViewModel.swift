@@ -1,5 +1,4 @@
-import Foundation
-import AppKit
+import SwiftUI
 
 @Observable @MainActor
 final class CompareViewModel {
@@ -22,6 +21,10 @@ final class CompareViewModel {
     var rightImage: NSImage?
     var diffResult: PDFDiffResult?
     var structuralDiff: PDFStructuralDiffResult?
+
+    // Zoom state (shared across modes, persists on mode switch)
+    var zoomLevel: CGFloat = 1.0
+    var panOffset: CGSize = .zero
 
     let pdfService: PDFServiceProtocol
 
@@ -90,12 +93,16 @@ final class CompareViewModel {
     func nextPage() {
         guard maxPageCount > 0, currentPage < maxPageCount - 1 else { return }
         currentPage += 1
+        zoomLevel = 1.0
+        panOffset = .zero
         Task { await renderAndDiff() }
     }
 
     func previousPage() {
         guard currentPage > 0 else { return }
         currentPage -= 1
+        zoomLevel = 1.0
+        panOffset = .zero
         Task { await renderAndDiff() }
     }
 
@@ -104,8 +111,29 @@ final class CompareViewModel {
         Task { await computeDiff() }
     }
 
+    func zoomIn() {
+        withAnimation(.easeInOut(duration: 0.15)) {
+            zoomLevel = min(10.0, zoomLevel * 1.25)
+        }
+    }
+
+    func zoomOut() {
+        withAnimation(.easeInOut(duration: 0.15)) {
+            zoomLevel = max(0.1, zoomLevel / 1.25)
+        }
+    }
+
+    func zoomFit() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            zoomLevel = 1.0
+            panOffset = .zero
+        }
+    }
+
     func renderAndDiff() async {
         guard let left = leftDocument, let right = rightDocument else { return }
+        zoomLevel = 1.0
+        panOffset = .zero
         isComparing = true
         defer { isComparing = false }
 

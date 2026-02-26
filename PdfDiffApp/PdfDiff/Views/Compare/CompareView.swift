@@ -114,6 +114,30 @@ struct CompareView: View {
 
             Divider().frame(height: 20)
 
+            // Zoom controls
+            HStack(spacing: 4) {
+                Button(action: { viewModel.zoomOut() }) {
+                    Image(systemName: "minus.magnifyingglass")
+                }
+                .buttonStyle(.borderless)
+
+                Text(String(format: "%.0f%%", viewModel.zoomLevel * 100))
+                    .font(.caption.monospacedDigit())
+                    .frame(width: 44)
+                    .onTapGesture { viewModel.zoomFit() }
+
+                Button(action: { viewModel.zoomIn() }) {
+                    Image(systemName: "plus.magnifyingglass")
+                }
+                .buttonStyle(.borderless)
+
+                Button("Fit") { viewModel.zoomFit() }
+                    .font(.caption)
+                    .buttonStyle(.borderless)
+            }
+
+            Divider().frame(height: 20)
+
             HStack(spacing: 8) {
                 Button(action: { viewModel.previousPage() }) {
                     Image(systemName: "chevron.left")
