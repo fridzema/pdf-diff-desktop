@@ -2,9 +2,11 @@ import SwiftUI
 
 @main
 struct PdfDiffApp: App {
+    @State private var viewModel = AppViewModel(pdfService: MockPDFService())
+
     var body: some Scene {
         WindowGroup {
-            AppView(viewModel: AppViewModel(pdfService: MockPDFService()))
+            AppView(viewModel: viewModel)
         }
         .commands {
             CommandGroup(after: .newItem) {
@@ -13,7 +15,7 @@ struct PdfDiffApp: App {
                     panel.allowedContentTypes = [.pdf]
                     panel.allowsMultipleSelection = true
                     if panel.runModal() == .OK {
-                        // Post notification or use environment to pass URLs
+                        viewModel.openFiles(urls: panel.urls)
                     }
                 }
                 .keyboardShortcut("o", modifiers: .command)
