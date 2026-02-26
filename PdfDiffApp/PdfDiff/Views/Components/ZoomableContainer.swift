@@ -8,9 +8,16 @@ struct ZoomableContainer<Content: View>: View {
     @Binding var externalOffset: CGSize
     let useExternalState: Bool
 
+    // Independence toggle (for Option-key decouple in side-by-side)
+    var isIndependent: Bool = false
+
     // Internal state (standalone mode)
     @State private var internalZoom: CGFloat = 1.0
     @State private var internalOffset: CGSize = .zero
+
+    // Independent state (decoupled mode)
+    @State private var independentZoom: CGFloat = 1.0
+    @State private var independentOffset: CGSize = .zero
 
     // Gesture tracking
     @State private var lastMagnification: CGFloat = 1.0
@@ -28,29 +35,35 @@ struct ZoomableContainer<Content: View>: View {
         self.useExternalState = false
     }
 
-    /// Synced initializer (external bindings)
+    /// Synced initializer (external bindings) with optional independence toggle
     init(
         zoom: Binding<CGFloat>,
         offset: Binding<CGSize>,
+        isIndependent: Bool = false,
         @ViewBuilder content: () -> Content
     ) {
         self.content = content()
         self._externalZoom = zoom
         self._externalOffset = offset
         self.useExternalState = true
+        self.isIndependent = isIndependent
     }
 
     private var currentZoom: CGFloat {
-        useExternalState ? externalZoom : internalZoom
+        if isIndependent { return independentZoom }
+        return useExternalState ? externalZoom : internalZoom
     }
 
     private var currentOffset: CGSize {
-        useExternalState ? externalOffset : internalOffset
+        if isIndependent { return independentOffset }
+        return useExternalState ? externalOffset : internalOffset
     }
 
     private func setZoom(_ value: CGFloat) {
         let clamped = min(maxZoom, max(minZoom, value))
-        if useExternalState {
+        if isIndependent {
+            independentZoom = clamped
+        } else if useExternalState {
             externalZoom = clamped
         } else {
             internalZoom = clamped
@@ -58,7 +71,9 @@ struct ZoomableContainer<Content: View>: View {
     }
 
     private func setOffset(_ value: CGSize) {
-        if useExternalState {
+        if isIndependent {
+            independentOffset = value
+        } else if useExternalState {
             externalOffset = value
         } else {
             internalOffset = value
@@ -86,6 +101,17 @@ struct ZoomableContainer<Content: View>: View {
                         }
                     }
                 }
+        }
+        .onChange(of: isIndependent) { wasIndependent, nowIndependent in
+            if nowIndependent {
+                // Entering independent mode: snapshot current shared state
+                independentZoom = useExternalState ? externalZoom : internalZoom
+                independentOffset = useExternalState ? externalOffset : internalOffset
+                dragStart = independentOffset
+            } else {
+                // Leaving independent mode: sync dragStart back to shared state
+                dragStart = useExternalState ? externalOffset : internalOffset
+            }
         }
     }
 
