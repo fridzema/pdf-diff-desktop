@@ -9,6 +9,7 @@ struct DocumentSlotView: View {
 
     @State private var isTargeted = false
     @State private var dropFailed = false
+    @State private var dropSucceeded = false
 
     var body: some View {
         VStack(spacing: 6) {
@@ -67,6 +68,17 @@ struct DocumentSlotView: View {
                                 .fill(isTargeted ? Color.accentColor.opacity(0.05) : Color.clear)
                         )
                 )
+                .overlay {
+                    if dropSucceeded {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title)
+                            .foregroundStyle(.green)
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                }
+                .animation(.easeInOut(duration: 0.2), value: dropSucceeded)
+                .scaleEffect(isTargeted ? 1.02 : 1.0)
+                .animation(.easeInOut(duration: 0.15), value: isTargeted)
             }
         }
         .onDrop(of: [.fileURL, .utf8PlainText], isTargeted: $isTargeted) { providers in
@@ -84,7 +96,10 @@ struct DocumentSlotView: View {
                         DispatchQueue.main.async { flashDropFailed() }
                         return
                     }
-                    DispatchQueue.main.async { onDrop(url.path) }
+                    DispatchQueue.main.async {
+                        onDrop(url.path)
+                        flashDropSucceeded()
+                    }
                 }
                 return
             }
@@ -93,7 +108,10 @@ struct DocumentSlotView: View {
         for provider in providers {
             _ = provider.loadObject(ofClass: String.self) { path, _ in
                 if let path {
-                    DispatchQueue.main.async { onDrop(path) }
+                    DispatchQueue.main.async {
+                        onDrop(path)
+                        flashDropSucceeded()
+                    }
                 }
             }
         }
@@ -103,6 +121,13 @@ struct DocumentSlotView: View {
         dropFailed = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
             dropFailed = false
+        }
+    }
+
+    private func flashDropSucceeded() {
+        dropSucceeded = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            dropSucceeded = false
         }
     }
 }

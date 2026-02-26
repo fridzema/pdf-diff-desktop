@@ -44,6 +44,15 @@ struct CompareView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .zoomIn)) { _ in
+            viewModel.zoomIn()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .zoomOut)) { _ in
+            viewModel.zoomOut()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .zoomFit)) { _ in
+            viewModel.zoomFit()
+        }
     }
 
     // MARK: - Document Slots
