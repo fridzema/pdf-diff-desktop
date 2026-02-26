@@ -4,12 +4,20 @@ struct DiffSummaryPanel: View {
     let diffResult: PDFDiffResult?
     let structuralDiff: PDFStructuralDiffResult?
     var onRegionTapped: ((CGRect) -> Void)?
+    var aiResult: AIAnalysisResult?
+    var isAnalyzing: Bool = false
+    var aiError: String?
+    var onRetry: (() -> Void)?
 
     @State private var isPixelExpanded = true
     @State private var isMetadataExpanded = true
     @State private var isTextExpanded = true
     @State private var isFontsExpanded = true
     @State private var isPageSizeExpanded = true
+    @State private var isVisualExpanded = true
+    @State private var isTextCompExpanded = true
+    @State private var isQCExpanded = true
+    @State private var isAnomaliesExpanded = true
 
     var body: some View {
         ScrollView {
@@ -45,6 +53,51 @@ struct DiffSummaryPanel: View {
                             .foregroundStyle(.green)
                             .padding(.vertical, 4)
                     }
+                }
+
+                // AI Analysis sections
+                if isAnalyzing {
+                    HStack {
+                        ProgressView()
+                            .controlSize(.small)
+                        Text("Analyzing with AI...")
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 8)
+                }
+
+                if let error = aiError {
+                    HStack {
+                        Image(systemName: "exclamation.triangle.fill")
+                            .foregroundStyle(.orange)
+                        Text(error)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        if let retry = onRetry {
+                            Button("Retry") { retry() }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+
+                if let ai = aiResult {
+                    Divider().padding(.vertical, 4)
+
+                    aiVisualChangesSection(ai.visualChanges)
+                    aiTextComparisonSection(ai.textComparison)
+                    aiQCSection(ai.qcChecklist)
+                    aiAnomaliesSection(ai.anomalies)
+
+                    Button {
+                        copyAIReport(ai)
+                    } label: {
+                        Label("Copy AI Report", systemImage: "doc.on.doc")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .padding(.top, 4)
                 }
 
                 if diffResult == nil && structuralDiff == nil {
@@ -259,5 +312,113 @@ struct DiffSummaryPanel: View {
         if score >= 0.99 { return .green }
         if score >= 0.90 { return .yellow }
         return .red
+    }
+
+    // MARK: - AI Analysis Sections
+
+    @ViewBuilder
+    private func aiVisualChangesSection(_ text: String) -> some View {
+        DisclosureGroup(isExpanded: $isVisualExpanded) {
+            Text(text)
+                .font(.caption)
+                .textSelection(.enabled)
+                .padding(.top, 4)
+        } label: {
+            Label("Visual Changes", systemImage: "eye")
+                .font(.headline)
+        }
+    }
+
+    @ViewBuilder
+    private func aiTextComparisonSection(_ text: String) -> some View {
+        DisclosureGroup(isExpanded: $isTextCompExpanded) {
+            Text(text)
+                .font(.caption)
+                .textSelection(.enabled)
+                .padding(.top, 4)
+        } label: {
+            Label("Text Comparison", systemImage: "text.magnifyingglass")
+                .font(.headline)
+        }
+    }
+
+    @ViewBuilder
+    private func aiQCSection(_ items: [QCCheckItem]) -> some View {
+        DisclosureGroup(isExpanded: $isQCExpanded) {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: qcStatusIcon(item.status))
+                            .foregroundStyle(qcStatusColor(item.status))
+                            .frame(width: 16)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.check)
+                                .font(.caption.bold())
+                            Text(item.detail)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .padding(.top, 4)
+        } label: {
+            Label("Prepress QC", systemImage: "checklist")
+                .font(.headline)
+        }
+    }
+
+    @ViewBuilder
+    private func aiAnomaliesSection(_ text: String) -> some View {
+        DisclosureGroup(isExpanded: $isAnomaliesExpanded) {
+            HStack {
+                if text != "No issues found" {
+                    Text(text)
+                        .font(.caption)
+                        .textSelection(.enabled)
+                        .padding(8)
+                        .background(.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+                } else {
+                    Text(text)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.top, 4)
+        } label: {
+            Label("Anomalies", systemImage: "exclamationmark.triangle")
+                .font(.headline)
+        }
+    }
+
+    private func qcStatusIcon(_ status: QCStatus) -> String {
+        switch status {
+        case .pass: "checkmark.circle.fill"
+        case .warn: "exclamationmark.triangle.fill"
+        case .fail: "xmark.circle.fill"
+        }
+    }
+
+    private func qcStatusColor(_ status: QCStatus) -> Color {
+        switch status {
+        case .pass: .green
+        case .warn: .yellow
+        case .fail: .red
+        }
+    }
+
+    private func copyAIReport(_ result: AIAnalysisResult) {
+        var report = "## AI Analysis Report\n\n"
+        report += "### Visual Changes\n\(result.visualChanges)\n\n"
+        report += "### Text Comparison\n\(result.textComparison)\n\n"
+        report += "### Prepress QC\n"
+        for item in result.qcChecklist {
+            let icon = item.status == .pass ? "✓" : item.status == .warn ? "⚠" : "✗"
+            report += "\(icon) \(item.check): \(item.detail)\n"
+        }
+        report += "\n### Anomalies\n\(result.anomalies)\n"
+
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(report, forType: .string)
     }
 }

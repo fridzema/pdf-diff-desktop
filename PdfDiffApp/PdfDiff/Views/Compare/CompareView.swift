@@ -23,7 +23,11 @@ struct CompareView: View {
 
                     DiffSummaryPanel(
                         diffResult: viewModel.diffResult,
-                        structuralDiff: viewModel.structuralDiff
+                        structuralDiff: viewModel.structuralDiff,
+                        aiResult: viewModel.aiResult,
+                        isAnalyzing: viewModel.isAnalyzing,
+                        aiError: viewModel.aiError,
+                        onRetry: { Task { await viewModel.runAIAnalysis() } }
                     )
                     .frame(minHeight: 120, idealHeight: 180, maxHeight: 300)
                 }
