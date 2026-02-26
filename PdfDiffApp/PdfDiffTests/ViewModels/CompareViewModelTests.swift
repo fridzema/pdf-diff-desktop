@@ -1,4 +1,5 @@
 import Testing
+import SwiftUI
 @testable import PdfDiff
 
 @Suite("CompareViewModel Tests")
@@ -119,5 +120,69 @@ struct CompareViewModelTests {
         await vm.setDocuments(left: left, right: right)
 
         #expect(vm.maxPageCount == 3)
+    }
+
+    // MARK: - Zoom State Tests
+
+    @Test("zoom resets on page change")
+    func zoomResetsOnPageChange() async {
+        let left = try! mockService.openDocument(path: "/left.pdf")
+        let right = try! mockService.openDocument(path: "/right.pdf")
+        let vm = CompareViewModel(pdfService: mockService)
+
+        await vm.setDocuments(left: left, right: right)
+        vm.zoomLevel = 2.5
+        vm.panOffset = CGSize(width: 100, height: 50)
+
+        vm.nextPage()
+
+        #expect(vm.zoomLevel == 1.0)
+        #expect(vm.panOffset == .zero)
+    }
+
+    @Test("zoom in increases zoom level")
+    func zoomInIncreasesLevel() async {
+        let vm = CompareViewModel(pdfService: mockService)
+        let initial = vm.zoomLevel
+        vm.zoomIn()
+        #expect(vm.zoomLevel > initial)
+    }
+
+    @Test("zoom out decreases zoom level")
+    func zoomOutDecreasesLevel() async {
+        let vm = CompareViewModel(pdfService: mockService)
+        vm.zoomLevel = 2.0
+        vm.zoomOut()
+        #expect(vm.zoomLevel < 2.0)
+    }
+
+    @Test("zoom fit resets to 1.0")
+    func zoomFitResetsLevel() async {
+        let vm = CompareViewModel(pdfService: mockService)
+        vm.zoomLevel = 3.0
+        vm.panOffset = CGSize(width: 50, height: 50)
+        vm.zoomFit()
+        #expect(vm.zoomLevel == 1.0)
+        #expect(vm.panOffset == .zero)
+    }
+
+    // MARK: - Overlay Sub-mode Tests
+
+    @Test("default overlay sub-mode is blink")
+    func defaultOverlaySubMode() async {
+        let vm = CompareViewModel(pdfService: mockService)
+        #expect(vm.overlaySubMode == .blink)
+    }
+
+    @Test("diff overlay color defaults to red")
+    func defaultDiffOverlayColor() async {
+        let vm = CompareViewModel(pdfService: mockService)
+        #expect(vm.diffOverlayColor == .red)
+    }
+
+    @Test("diff overlay opacity defaults to 0.5")
+    func defaultDiffOverlayOpacity() async {
+        let vm = CompareViewModel(pdfService: mockService)
+        #expect(vm.diffOverlayOpacity == 0.5)
     }
 }
