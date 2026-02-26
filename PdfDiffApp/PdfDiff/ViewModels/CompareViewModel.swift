@@ -31,6 +31,12 @@ final class CompareViewModel {
     var diffResult: PDFDiffResult?
     var structuralDiff: PDFStructuralDiffResult?
 
+    // AI Analysis
+    var aiResult: AIAnalysisResult?
+    var isAnalyzing = false
+    var aiError: String?
+    var aiService: AIAnalysisServiceProtocol?
+
     // Zoom state (shared across modes, persists on mode switch)
     var zoomLevel: CGFloat = 1.0
     var panOffset: CGSize = .zero
@@ -48,6 +54,10 @@ final class CompareViewModel {
 
     var hasDocuments: Bool {
         leftDocument != nil && rightDocument != nil
+    }
+
+    var canRunAIAnalysis: Bool {
+        hasDocuments && diffResult != nil && aiService != nil && !isAnalyzing
     }
 
     func setDocuments(left: OpenedDocument, right: OpenedDocument) async {
@@ -139,8 +149,34 @@ final class CompareViewModel {
         }
     }
 
+    func runAIAnalysis() async {
+        guard let left = leftImage, let right = rightImage,
+              let service = aiService,
+              let diffRes = diffResult,
+              let structDiff = structuralDiff else { return }
+
+        let diffImage = diffRes.diffImage ?? left
+
+        isAnalyzing = true
+        aiError = nil
+
+        do {
+            aiResult = try await service.analyze(
+                left: left, right: right, diff: diffImage,
+                leftText: "", rightText: "",
+                diffResult: diffRes, structuralDiff: structDiff
+            )
+        } catch {
+            aiError = error.localizedDescription
+        }
+
+        isAnalyzing = false
+    }
+
     func renderAndDiff() async {
         guard let left = leftDocument, let right = rightDocument else { return }
+        aiResult = nil
+        aiError = nil
         zoomLevel = 1.0
         panOffset = .zero
         isComparing = true

@@ -1,5 +1,6 @@
 import Testing
 import SwiftUI
+import AppKit
 @testable import PdfDiff
 
 @Suite("CompareViewModel Tests")
@@ -184,5 +185,81 @@ struct CompareViewModelTests {
     func defaultDiffOverlayOpacity() async {
         let vm = CompareViewModel(pdfService: mockService)
         #expect(vm.diffOverlayOpacity == 0.5)
+    }
+
+    // MARK: - AI Analysis Tests
+
+    @Test("AI analysis defaults to nil")
+    func aiAnalysisDefaultsNil() async {
+        let vm = CompareViewModel(pdfService: mockService)
+        #expect(vm.aiResult == nil)
+        #expect(!vm.isAnalyzing)
+        #expect(vm.aiError == nil)
+    }
+
+    @Test("canRunAIAnalysis is false without documents")
+    func cannotRunWithoutDocs() async {
+        let vm = CompareViewModel(pdfService: mockService)
+        #expect(!vm.canRunAIAnalysis)
+    }
+
+    @Test("canRunAIAnalysis is false without AI service")
+    func cannotRunWithoutKey() async {
+        let left = try! mockService.openDocument(path: "/left.pdf")
+        let right = try! mockService.openDocument(path: "/right.pdf")
+        let vm = CompareViewModel(pdfService: mockService)
+        await vm.setDocuments(left: left, right: right)
+        // No AI service set
+        #expect(!vm.canRunAIAnalysis)
+    }
+
+    @Test("runAIAnalysis populates result on success")
+    func aiAnalysisPopulatesResult() async {
+        let left = try! mockService.openDocument(path: "/left.pdf")
+        let right = try! mockService.openDocument(path: "/right.pdf")
+        let vm = CompareViewModel(pdfService: mockService)
+        let mockAI = MockAIAnalysisService()
+        vm.aiService = mockAI
+        await vm.setDocuments(left: left, right: right)
+
+        await vm.runAIAnalysis()
+
+        #expect(vm.aiResult != nil)
+        #expect(vm.aiResult?.visualChanges == "Mock visual changes")
+        #expect(vm.aiError == nil)
+        #expect(mockAI.analyzeCallCount == 1)
+    }
+
+    @Test("runAIAnalysis sets error on failure")
+    func aiAnalysisSetsError() async {
+        let left = try! mockService.openDocument(path: "/left.pdf")
+        let right = try! mockService.openDocument(path: "/right.pdf")
+        let vm = CompareViewModel(pdfService: mockService)
+        let mockAI = MockAIAnalysisService()
+        mockAI.mockError = AIAnalysisError.invalidAPIKey
+        vm.aiService = mockAI
+        await vm.setDocuments(left: left, right: right)
+
+        await vm.runAIAnalysis()
+
+        #expect(vm.aiResult == nil)
+        #expect(vm.aiError != nil)
+        #expect(vm.aiError!.contains("Invalid API key"))
+    }
+
+    @Test("AI results cleared on new comparison")
+    func aiResultsClearedOnNewComparison() async {
+        let left = try! mockService.openDocument(path: "/left.pdf")
+        let right = try! mockService.openDocument(path: "/right.pdf")
+        let vm = CompareViewModel(pdfService: mockService)
+        let mockAI = MockAIAnalysisService()
+        vm.aiService = mockAI
+        await vm.setDocuments(left: left, right: right)
+        await vm.runAIAnalysis()
+        #expect(vm.aiResult != nil)
+
+        // Trigger new comparison
+        await vm.renderAndDiff()
+        #expect(vm.aiResult == nil)
     }
 }

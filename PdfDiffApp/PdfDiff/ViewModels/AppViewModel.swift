@@ -95,6 +95,14 @@ final class AppViewModel {
         documents.first { $0.path == path }
     }
 
+    func configureAIService(settingsManager: SettingsManager) {
+        if settingsManager.hasAPIKey {
+            compareViewModel.aiService = OpenRouterAIService(apiKey: settingsManager.apiKey)
+        } else {
+            compareViewModel.aiService = nil
+        }
+    }
+
     func removeDocument(_ doc: OpenedDocument) {
         documents.removeAll { $0.id == doc.id }
         selectedDocumentIDs.remove(doc.id)
