@@ -5,37 +5,93 @@ struct CompareView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Toolbar: mode picker, sensitivity, page navigation
-            compareToolbar
+            // Document slots
+            documentSlots
             Divider()
 
-            // Compare content area + summary panel
-            if viewModel.isComparing {
-                ProgressView("Comparing...")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if viewModel.hasDocuments {
-                HSplitView {
+            if viewModel.hasDocuments {
+                // Compare toolbar (mode picker, sensitivity, page nav)
+                compareToolbar
+                Divider()
+
+                // Main content: visualization + diff summary
+                VSplitView {
                     compareContent
-                        .frame(minWidth: 400)
+                        .frame(minHeight: 300)
 
                     DiffSummaryPanel(
                         diffResult: viewModel.diffResult,
                         structuralDiff: viewModel.structuralDiff
                     )
-                    .frame(minWidth: 200, idealWidth: 280, maxWidth: 350)
+                    .frame(minHeight: 120, idealHeight: 180, maxHeight: 300)
                 }
-            } else {
-                Text("Select two documents to compare")
-                    .foregroundStyle(.secondary)
+            } else if viewModel.isComparing {
+                ProgressView("Comparing...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                VStack(spacing: 12) {
+                    Image(systemName: "square.split.2x1")
+                        .font(.system(size: 36))
+                        .foregroundStyle(.secondary)
+                    Text("Drag documents into the slots above")
+                        .foregroundStyle(.secondary)
+                    Text("or select two in the sidebar and click Compare")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }
 
-    @ViewBuilder
+    // MARK: - Document Slots
+
+    private var documentSlots: some View {
+        HStack(spacing: 12) {
+            DocumentSlotView(
+                label: "Left",
+                document: viewModel.leftDocument,
+                onDrop: { path in
+                    if let doc = findDocument(path: path) {
+                        viewModel.setLeftDocument(doc)
+                    }
+                },
+                onClear: { viewModel.clearLeftDocument() }
+            )
+
+            Button {
+                viewModel.swapDocuments()
+            } label: {
+                Image(systemName: "arrow.left.arrow.right")
+                    .font(.title3)
+            }
+            .buttonStyle(.plain)
+            .disabled(!viewModel.hasDocuments)
+
+            DocumentSlotView(
+                label: "Right",
+                document: viewModel.rightDocument,
+                onDrop: { path in
+                    if let doc = findDocument(path: path) {
+                        viewModel.setRightDocument(doc)
+                    }
+                },
+                onClear: { viewModel.clearRightDocument() }
+            )
+        }
+        .padding(12)
+    }
+
+    /// Look up an OpenedDocument by path from the service.
+    /// The document must already be opened (present in the service's cache).
+    private func findDocument(path: String) -> OpenedDocument? {
+        try? viewModel.pdfService.openDocument(path: path)
+    }
+
+    // MARK: - Toolbar
+
     private var compareToolbar: some View {
         HStack(spacing: 16) {
-            // Compare mode picker
             Picker("Mode", selection: $viewModel.compareMode) {
                 ForEach(CompareViewModel.CompareMode.allCases, id: \.self) { mode in
                     Text(mode.rawValue).tag(mode)
@@ -46,7 +102,6 @@ struct CompareView: View {
 
             Spacer()
 
-            // Sensitivity slider
             HStack(spacing: 8) {
                 Text("Sensitivity")
                     .font(.caption)
@@ -63,7 +118,6 @@ struct CompareView: View {
 
             Divider().frame(height: 20)
 
-            // Page navigation
             HStack(spacing: 8) {
                 Button(action: { viewModel.previousPage() }) {
                     Image(systemName: "chevron.left")
@@ -76,16 +130,23 @@ struct CompareView: View {
                 Button(action: { viewModel.nextPage() }) {
                     Image(systemName: "chevron.right")
                 }
-                .disabled(viewModel.currentPage >= viewModel.maxPageCount - 1)
+                .disabled(viewModel.maxPageCount == 0 || viewModel.currentPage >= viewModel.maxPageCount - 1)
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
     }
 
+    // MARK: - Compare Content
+
     @ViewBuilder
     private var compareContent: some View {
         switch viewModel.compareMode {
+        case .overlay:
+            AnimatedOverlayView(
+                leftImage: viewModel.leftImage,
+                rightImage: viewModel.rightImage
+            )
         case .sideBySide:
             SideBySideView(
                 leftImage: viewModel.leftImage,
@@ -93,8 +154,6 @@ struct CompareView: View {
                 leftLabel: viewModel.leftDocument?.fileName,
                 rightLabel: viewModel.rightDocument?.fileName
             )
-        case .overlay:
-            OverlayView(diffResult: viewModel.diffResult)
         case .swipe:
             SwipeView(
                 leftImage: viewModel.leftImage,

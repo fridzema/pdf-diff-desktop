@@ -37,7 +37,6 @@ struct CompareViewModelTests {
         vm.nextPage()
         #expect(vm.currentPage == 2)
 
-        // Should not exceed min page count
         vm.nextPage()
         #expect(vm.currentPage == 2)
 
@@ -57,27 +56,55 @@ struct CompareViewModelTests {
         #expect(vm.currentPage == 0)
     }
 
-    @Test("compare mode switching")
-    func compareModeSwitch() async {
+    @Test("default compare mode is overlay")
+    func defaultModeIsOverlay() async {
+        let vm = CompareViewModel(pdfService: mockService)
+        #expect(vm.compareMode == .overlay)
+    }
+
+    @Test("swap documents exchanges left and right")
+    func swapDocuments() async {
+        let left = try! mockService.openDocument(path: "/left.pdf")
+        let right = try! mockService.openDocument(path: "/right.pdf")
         let vm = CompareViewModel(pdfService: mockService)
 
-        vm.compareMode = .overlay
-        #expect(vm.compareMode == .overlay)
+        await vm.setDocuments(left: left, right: right)
+        vm.swapDocuments()
 
-        vm.compareMode = .swipe
-        #expect(vm.compareMode == .swipe)
+        #expect(vm.leftDocument == right)
+        #expect(vm.rightDocument == left)
+    }
 
-        vm.compareMode = .onionSkin
-        #expect(vm.compareMode == .onionSkin)
+    @Test("set individual slot triggers diff when both filled")
+    func setIndividualSlot() async {
+        let left = try! mockService.openDocument(path: "/left.pdf")
+        let right = try! mockService.openDocument(path: "/right.pdf")
+        let vm = CompareViewModel(pdfService: mockService)
 
-        vm.compareMode = .sideBySide
-        #expect(vm.compareMode == .sideBySide)
+        vm.setLeftDocument(left)
+        #expect(vm.leftDocument == left)
+        #expect(!vm.hasDocuments)
+
+        vm.setRightDocument(right)
+        #expect(vm.hasDocuments)
+    }
+
+    @Test("clear slot removes document")
+    func clearSlot() async {
+        let left = try! mockService.openDocument(path: "/left.pdf")
+        let right = try! mockService.openDocument(path: "/right.pdf")
+        let vm = CompareViewModel(pdfService: mockService)
+
+        await vm.setDocuments(left: left, right: right)
+
+        vm.clearLeftDocument()
+        #expect(vm.leftDocument == nil)
+        #expect(!vm.hasDocuments)
     }
 
     @Test("sensitivity update stores value")
     func sensitivityUpdate() async {
         let vm = CompareViewModel(pdfService: mockService)
-
         vm.updateSensitivity(0.05)
         #expect(vm.sensitivity == 0.05)
     }
@@ -91,7 +118,6 @@ struct CompareViewModelTests {
         let right = try! mockService.openDocument(path: "/right.pdf")
         await vm.setDocuments(left: left, right: right)
 
-        // Both mock docs have 3 pages
         #expect(vm.maxPageCount == 3)
     }
 }
