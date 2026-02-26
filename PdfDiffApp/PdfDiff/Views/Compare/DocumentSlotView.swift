@@ -18,7 +18,7 @@ struct DocumentSlotView: View {
                 // Filled slot
                 HStack(spacing: 8) {
                     Image(systemName: "doc.richtext")
-                        .foregroundStyle(.accentColor)
+                        .foregroundStyle(Color.accentColor)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(doc.fileName)
                             .font(.body)
