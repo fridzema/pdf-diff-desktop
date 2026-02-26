@@ -35,7 +35,6 @@ final class CompareViewModel {
     var aiResult: AIAnalysisResult?
     var isAnalyzing = false
     var aiError: String?
-    var aiService: AIAnalysisServiceProtocol?
 
     // Zoom state (shared across modes, persists on mode switch)
     var zoomLevel: CGFloat = 1.0
@@ -57,7 +56,7 @@ final class CompareViewModel {
     }
 
     var canRunAIAnalysis: Bool {
-        hasDocuments && diffResult != nil && aiService != nil && !isAnalyzing
+        hasDocuments && diffResult != nil && !isAnalyzing
     }
 
     func setDocuments(left: OpenedDocument, right: OpenedDocument) async {
@@ -149,11 +148,20 @@ final class CompareViewModel {
         }
     }
 
-    func runAIAnalysis() async {
+    func runAIAnalysis(apiKey: String? = nil, service: AIAnalysisServiceProtocol? = nil) async {
         guard let left = leftImage, let right = rightImage,
-              let service = aiService,
               let diffRes = diffResult,
               let structDiff = structuralDiff else { return }
+
+        let analysisService: AIAnalysisServiceProtocol
+        if let service = service {
+            analysisService = service
+        } else if let key = apiKey, !key.isEmpty {
+            analysisService = OpenRouterAIService(apiKey: key)
+        } else {
+            aiError = "No API key configured"
+            return
+        }
 
         let diffImage = diffRes.diffImage ?? left
 
@@ -161,7 +169,7 @@ final class CompareViewModel {
         aiError = nil
 
         do {
-            aiResult = try await service.analyze(
+            aiResult = try await analysisService.analyze(
                 left: left, right: right, diff: diffImage,
                 leftText: "", rightText: "",
                 diffResult: diffRes, structuralDiff: structDiff

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CompareView: View {
     @State var viewModel: CompareViewModel
+    @Environment(SettingsManager.self) private var settingsManager: SettingsManager?
     var findDocument: ((String) -> OpenedDocument?)? = nil
     var openFileAtPath: ((String) -> OpenedDocument?)? = nil
 
@@ -27,7 +28,11 @@ struct CompareView: View {
                         aiResult: viewModel.aiResult,
                         isAnalyzing: viewModel.isAnalyzing,
                         aiError: viewModel.aiError,
-                        onRetry: { Task { await viewModel.runAIAnalysis() } }
+                        onRetry: {
+                            if let key = settingsManager?.apiKey, !key.isEmpty {
+                                Task { await viewModel.runAIAnalysis(apiKey: key) }
+                            }
+                        }
                     )
                     .frame(minHeight: 120, idealHeight: 180, maxHeight: 300)
                 }
@@ -148,6 +153,21 @@ struct CompareView: View {
                     .font(.caption)
                     .buttonStyle(.borderless)
             }
+
+            Divider().frame(height: 20)
+
+            Button {
+                if let key = settingsManager?.apiKey, !key.isEmpty {
+                    Task { await viewModel.runAIAnalysis(apiKey: key) }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "wand.and.stars")
+                    Text("Analyze")
+                }
+            }
+            .disabled(!viewModel.canRunAIAnalysis || settingsManager?.hasAPIKey != true)
+            .help(settingsManager?.hasAPIKey != true ? "Set API key in Settings (\u{2318},)" : "Run AI analysis")
 
             Divider().frame(height: 20)
 
