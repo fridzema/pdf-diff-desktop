@@ -67,7 +67,7 @@ struct DocumentSlotView: View {
                 )
             }
         }
-        .onDrop(of: [.plainText], isTargeted: $isTargeted) { providers in
+        .onDrop(of: [.utf8PlainText], isTargeted: $isTargeted) { providers in
             for provider in providers {
                 _ = provider.loadObject(ofClass: String.self) { path, _ in
                     if let path {

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CompareView: View {
     @State var viewModel: CompareViewModel
+    var findDocument: ((String) -> OpenedDocument?)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -52,7 +53,7 @@ struct CompareView: View {
                 label: "Left",
                 document: viewModel.leftDocument,
                 onDrop: { path in
-                    if let doc = findDocument(path: path) {
+                    if let doc = findDocument?(path) {
                         viewModel.setLeftDocument(doc)
                     }
                 },
@@ -72,7 +73,7 @@ struct CompareView: View {
                 label: "Right",
                 document: viewModel.rightDocument,
                 onDrop: { path in
-                    if let doc = findDocument(path: path) {
+                    if let doc = findDocument?(path) {
                         viewModel.setRightDocument(doc)
                     }
                 },
@@ -80,12 +81,6 @@ struct CompareView: View {
             )
         }
         .padding(12)
-    }
-
-    /// Look up an OpenedDocument by path from the service.
-    /// The document must already be opened (present in the service's cache).
-    private func findDocument(path: String) -> OpenedDocument? {
-        try? viewModel.pdfService.openDocument(path: path)
     }
 
     // MARK: - Toolbar

@@ -10,7 +10,7 @@ final class AppViewModel {
     }
 
     var documents: [OpenedDocument] = []
-    var selectedDocuments: Set<OpenedDocument> = []
+    var selectedDocumentIDs: Set<OpenedDocument.ID> = []
     var activeTab: ActiveTab = .inspector
     var errorMessage: String?
     var isDropTargeted = false
@@ -23,9 +23,14 @@ final class AppViewModel {
         self.compareViewModel = CompareViewModel(pdfService: pdfService)
     }
 
-    /// The single selected document for inspector mode (first in selection set)
+    /// Documents currently selected in sidebar
+    var selectedDocuments: [OpenedDocument] {
+        documents.filter { selectedDocumentIDs.contains($0.id) }
+    }
+
+    /// The single selected document for inspector mode
     var selectedDocument: OpenedDocument? {
-        selectedDocuments.count == 1 ? selectedDocuments.first : nil
+        selectedDocumentIDs.count == 1 ? selectedDocuments.first : nil
     }
 
     func openFiles(urls: [URL]) {
@@ -47,8 +52,8 @@ final class AppViewModel {
         // Auto-enter compare mode if exactly 2 new PDFs opened
         if newDocs.count == 2 {
             enterCompareMode(left: newDocs[0], right: newDocs[1])
-        } else if newDocs.count == 1 && selectedDocuments.isEmpty {
-            selectedDocuments = [newDocs[0]]
+        } else if newDocs.count == 1 && selectedDocumentIDs.isEmpty {
+            selectedDocumentIDs = [newDocs[0].id]
         }
     }
 
@@ -81,14 +86,18 @@ final class AppViewModel {
     }
 
     func enterCompareModeFromSelection() {
-        let sorted = documents.filter { selectedDocuments.contains($0) }
-        guard sorted.count == 2 else { return }
-        enterCompareMode(left: sorted[0], right: sorted[1])
+        let selected = selectedDocuments
+        guard selected.count == 2 else { return }
+        enterCompareMode(left: selected[0], right: selected[1])
+    }
+
+    func document(forPath path: String) -> OpenedDocument? {
+        documents.first { $0.path == path }
     }
 
     func removeDocument(_ doc: OpenedDocument) {
         documents.removeAll { $0.id == doc.id }
-        selectedDocuments.remove(doc)
+        selectedDocumentIDs.remove(doc.id)
         if compareViewModel.leftDocument == doc {
             compareViewModel.leftDocument = nil
         }

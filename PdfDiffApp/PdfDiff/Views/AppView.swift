@@ -51,7 +51,10 @@ struct DetailAreaView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             case .compare:
-                CompareView(viewModel: viewModel.compareViewModel)
+                CompareView(
+                    viewModel: viewModel.compareViewModel,
+                    findDocument: { viewModel.document(forPath: $0) }
+                )
             }
         }
     }
@@ -84,8 +87,8 @@ struct SidebarView: View {
     var body: some View {
         VStack(spacing: 0) {
             List(viewModel.documents, selection: Binding(
-                get: { viewModel.selectedDocuments },
-                set: { viewModel.selectedDocuments = $0 }
+                get: { viewModel.selectedDocumentIDs },
+                set: { viewModel.selectedDocumentIDs = $0 }
             )) { doc in
                 DocumentRow(document: doc)
                     .draggable(doc.path) // Enable drag from sidebar
@@ -93,7 +96,7 @@ struct SidebarView: View {
             .navigationTitle("Documents")
 
             // Compare button at bottom
-            if viewModel.selectedDocuments.count == 2 {
+            if viewModel.selectedDocumentIDs.count == 2 {
                 Divider()
                 Button {
                     viewModel.enterCompareModeFromSelection()
