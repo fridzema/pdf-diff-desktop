@@ -13,54 +13,87 @@ struct CompareView: View {
             Divider()
 
             if viewModel.hasDocuments {
-                // Compare toolbar (mode picker, sensitivity, page nav)
+                // Compare toolbar
                 compareToolbar
                 Divider()
 
-                // Main content: visualization + diff summary
-                VSplitView {
+                // Full-height compare content with overlay drawer
+                ZStack(alignment: .bottom) {
                     compareContent
-                        .frame(minHeight: 300)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                    DiffSummaryPanel(
-                        diffResult: viewModel.diffResult,
-                        structuralDiff: viewModel.structuralDiff,
-                        aiResult: viewModel.aiResult,
-                        isAnalyzing: viewModel.isAnalyzing,
-                        aiError: viewModel.aiError,
-                        onRetry: {
-                            if let key = settingsManager?.apiKey, !key.isEmpty {
-                                Task { await viewModel.runAIAnalysis(apiKey: key) }
-                            }
-                        }
-                    )
-                    .frame(minHeight: 120, idealHeight: 180, maxHeight: 300)
+                    GeometricGlassDrawer(isPresented: viewModel.activeDrawer != nil) {
+                        compareDrawerContent
+                    }
+                    .animation(DesignTokens.Motion.snappy, value: viewModel.activeDrawer)
                 }
             } else if viewModel.isComparing {
                 ProgressView("Comparing...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                VStack(spacing: 12) {
+                VStack(spacing: DesignTokens.Spacing.md) {
                     Image(systemName: "square.split.2x1")
                         .font(.system(size: 36))
                         .foregroundStyle(.secondary)
                     Text("Drag documents into the slots above")
                         .foregroundStyle(.secondary)
                     Text("or select two in the sidebar and click Compare")
-                        .font(.caption)
+                        .font(DesignTokens.Typo.toolbarLabel)
                         .foregroundStyle(.tertiary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .zoomIn)) { _ in
-            viewModel.zoomIn()
+        .onReceive(NotificationCenter.default.publisher(for: .zoomIn)) { _ in viewModel.zoomIn() }
+        .onReceive(NotificationCenter.default.publisher(for: .zoomOut)) { _ in viewModel.zoomOut() }
+        .onReceive(NotificationCenter.default.publisher(for: .zoomFit)) { _ in viewModel.zoomFit() }
+        .onKeyPress(.escape) {
+            if viewModel.activeDrawer != nil {
+                viewModel.dismissDrawer()
+                return .handled
+            }
+            return .ignored
         }
-        .onReceive(NotificationCenter.default.publisher(for: .zoomOut)) { _ in
-            viewModel.zoomOut()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .zoomFit)) { _ in
-            viewModel.zoomFit()
+    }
+
+    @ViewBuilder
+    private var compareDrawerContent: some View {
+        switch viewModel.activeDrawer {
+        case .diffSummary:
+            DiffSummaryPanel(
+                diffResult: viewModel.diffResult,
+                structuralDiff: viewModel.structuralDiff,
+                aiResult: viewModel.aiResult,
+                isAnalyzing: viewModel.isAnalyzing,
+                aiError: viewModel.aiError,
+                onRetry: {
+                    if let key = settingsManager?.apiKey, !key.isEmpty {
+                        Task { await viewModel.runAIAnalysis(apiKey: key) }
+                    }
+                }
+            )
+        case .aiAnalysis:
+            if let ai = viewModel.aiResult {
+                VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+                    Text("AI Analysis")
+                        .font(DesignTokens.Typo.sectionHeader)
+                    Text(ai.visualChanges)
+                        .font(.caption)
+                        .textSelection(.enabled)
+                }
+            } else if viewModel.isAnalyzing {
+                HStack {
+                    ProgressView().controlSize(.small)
+                    Text("Analyzing...")
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Text("No AI analysis results")
+                    .foregroundStyle(.secondary)
+                    .padding(DesignTokens.Spacing.lg)
+            }
+        case nil:
+            EmptyView()
         }
     }
 
@@ -99,13 +132,13 @@ struct CompareView: View {
                 onClear: { viewModel.clearRightDocument() }
             )
         }
-        .padding(12)
+        .padding(DesignTokens.Spacing.md)
     }
 
     // MARK: - Toolbar
 
     private var compareToolbar: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: DesignTokens.Spacing.lg) {
             Picker("Mode", selection: $viewModel.compareMode) {
                 ForEach(CompareViewModel.CompareMode.allCases, id: \.self) { mode in
                     Text(mode.rawValue).tag(mode)
@@ -116,9 +149,9 @@ struct CompareView: View {
 
             Spacer()
 
-            HStack(spacing: 8) {
+            HStack(spacing: DesignTokens.Spacing.sm) {
                 Text("Sensitivity")
-                    .font(.caption)
+                    .font(DesignTokens.Typo.toolbarLabel)
                     .foregroundStyle(.secondary)
                 Slider(value: Binding(
                     get: { viewModel.sensitivity },
@@ -133,7 +166,7 @@ struct CompareView: View {
             Divider().frame(height: 20)
 
             // Zoom controls
-            HStack(spacing: 4) {
+            HStack(spacing: DesignTokens.Spacing.xs) {
                 Button(action: { viewModel.zoomOut() }) {
                     Image(systemName: "minus.magnifyingglass")
                 }
@@ -150,7 +183,7 @@ struct CompareView: View {
                 .buttonStyle(.borderless)
 
                 Button("Fit") { viewModel.zoomFit() }
-                    .font(.caption)
+                    .font(DesignTokens.Typo.toolbarLabel)
                     .buttonStyle(.borderless)
             }
 
@@ -161,7 +194,7 @@ struct CompareView: View {
                     Task { await viewModel.runAIAnalysis(apiKey: key) }
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: DesignTokens.Spacing.xs) {
                     Image(systemName: "wand.and.stars")
                     Text("Analyze")
                 }
@@ -171,14 +204,25 @@ struct CompareView: View {
 
             Divider().frame(height: 20)
 
-            HStack(spacing: 8) {
+            // Drawer toggle
+            Button {
+                viewModel.toggleDrawer(.diffSummary)
+            } label: {
+                Image(systemName: "chart.bar.doc.horizontal")
+            }
+            .help("Diff Summary")
+            .foregroundStyle(viewModel.activeDrawer == .diffSummary ? Color.accentColor : .secondary)
+
+            Divider().frame(height: 20)
+
+            HStack(spacing: DesignTokens.Spacing.sm) {
                 Button(action: { viewModel.previousPage() }) {
                     Image(systemName: "chevron.left")
                 }
                 .disabled(viewModel.currentPage == 0)
 
                 Text("Page \(viewModel.currentPage + 1) of \(viewModel.maxPageCount)")
-                    .font(.body.monospacedDigit())
+                    .font(DesignTokens.Typo.bodyMono)
 
                 Button(action: { viewModel.nextPage() }) {
                     Image(systemName: "chevron.right")
@@ -186,8 +230,8 @@ struct CompareView: View {
                 .disabled(viewModel.maxPageCount == 0 || viewModel.currentPage >= viewModel.maxPageCount - 1)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, DesignTokens.Spacing.md)
+        .padding(.vertical, DesignTokens.Spacing.sm)
     }
 
     // MARK: - Compare Content
