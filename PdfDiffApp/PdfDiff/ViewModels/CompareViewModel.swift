@@ -40,6 +40,24 @@ final class CompareViewModel {
     var zoomLevel: CGFloat = 1.0
     var panOffset: CGSize = .zero
 
+    // Drawer state
+    enum DrawerPanel: String, CaseIterable {
+        case diffSummary, aiAnalysis
+    }
+    var activeDrawer: DrawerPanel? = nil
+
+    func toggleDrawer(_ panel: DrawerPanel) {
+        withAnimation(DesignTokens.Motion.snappy) {
+            activeDrawer = activeDrawer == panel ? nil : panel
+        }
+    }
+
+    func dismissDrawer() {
+        withAnimation(DesignTokens.Motion.snappy) {
+            activeDrawer = nil
+        }
+    }
+
     let pdfService: PDFServiceProtocol
 
     init(pdfService: PDFServiceProtocol) {
