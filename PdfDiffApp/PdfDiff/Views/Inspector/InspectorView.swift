@@ -158,6 +158,26 @@ struct InspectorView: View {
                             }
                         }
                     }
+                    .overlay {
+                        // Barcode overlay
+                        if viewModel.showBarcodeOverlay && !viewModel.detectedBarcodes.isEmpty {
+                            GeometryReader { geo in
+                                ForEach(viewModel.detectedBarcodes) { barcode in
+                                    Rectangle()
+                                        .stroke(Color.blue, lineWidth: 2)
+                                        .background(Color.blue.opacity(0.1))
+                                        .frame(
+                                            width: barcode.boundingBox.width * geo.size.width,
+                                            height: barcode.boundingBox.height * geo.size.height
+                                        )
+                                        .position(
+                                            x: (barcode.boundingBox.midX) * geo.size.width,
+                                            y: (barcode.boundingBox.midY) * geo.size.height
+                                        )
+                                }
+                            }
+                        }
+                    }
             }
         } else {
             Text("No page rendered")

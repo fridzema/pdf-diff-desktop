@@ -23,8 +23,13 @@ final class InspectorViewModel {
     var preflightResult: SwiftPreflightResult?
     var isPreflighting = false
 
+    // Barcode state
+    var detectedBarcodes: [DetectedBarcode] = []
+    var showBarcodeOverlay = true
+
     private let pdfService: PDFServiceProtocol
     private let preflightService = PreflightService()
+    private let barcodeService = BarcodeDetectionService()
 
     init(pdfService: PDFServiceProtocol) {
         self.pdfService = pdfService
@@ -51,6 +56,7 @@ final class InspectorViewModel {
 
         await renderCurrentPage()
         runPreflight()
+        await detectBarcodes()
     }
 
     func runPreflight() {
@@ -91,6 +97,37 @@ final class InspectorViewModel {
         }
 
         isInspecting = false
+    }
+
+    func detectBarcodes() async {
+        guard let image = renderedImage else { return }
+        detectedBarcodes = await barcodeService.detectBarcodes(in: image)
+
+        // Add barcode results to preflight
+        let barcodeChecks: [PreflightCheckItem]
+        if detectedBarcodes.isEmpty {
+            barcodeChecks = [PreflightCheckItem(
+                category: .barcodes, severity: .info,
+                title: "No barcodes detected", detail: "No barcodes found on this page.", page: currentPage
+            )]
+        } else {
+            barcodeChecks = detectedBarcodes.map { barcode in
+                PreflightCheckItem(
+                    category: .barcodes, severity: .pass,
+                    title: "\(barcode.displaySymbology) detected",
+                    detail: barcode.payload,
+                    page: currentPage
+                )
+            }
+        }
+
+        // Merge with existing preflight result
+        if let existing = preflightResult {
+            let nonBarcodeChecks = existing.checks.filter { $0.category != .barcodes }
+            preflightResult = SwiftPreflightResult(checks: nonBarcodeChecks + barcodeChecks)
+        } else {
+            preflightResult = SwiftPreflightResult(checks: barcodeChecks)
+        }
     }
 
     func nextPage() {
