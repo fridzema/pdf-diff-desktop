@@ -32,9 +32,29 @@ struct InspectorView: View {
             .frame(minHeight: 300)
             .animation(.easeInOut(duration: 0.25), value: viewModel.showInspectionSidebar)
 
-            // Metadata panel
-            MetadataPanel(metadata: viewModel.metadata, pageMetadata: viewModel.pagesMetadata)
-                .frame(minHeight: 150, maxHeight: 300)
+            // Preflight + Metadata panel
+            VStack(spacing: 0) {
+                if let preflight = viewModel.preflightResult {
+                    PreflightPanel(
+                        result: preflight,
+                        onNavigateToPage: { page in
+                            viewModel.currentPage = page
+                            Task { await viewModel.loadDocument(viewModel.document!) }
+                        }
+                    )
+                    Divider()
+                } else if viewModel.isPreflighting {
+                    HStack {
+                        ProgressView().controlSize(.small)
+                        Text("Running preflight...").font(.caption).foregroundStyle(.secondary)
+                    }
+                    .padding(8)
+                    Divider()
+                }
+
+                MetadataPanel(metadata: viewModel.metadata, pageMetadata: viewModel.pagesMetadata)
+            }
+            .frame(minHeight: 150, maxHeight: 300)
         }
     }
 

@@ -19,7 +19,12 @@ final class InspectorViewModel {
     var showInspectionSidebar = false
     var showPins = true
 
+    // Preflight state
+    var preflightResult: SwiftPreflightResult?
+    var isPreflighting = false
+
     private let pdfService: PDFServiceProtocol
+    private let preflightService = PreflightService()
 
     init(pdfService: PDFServiceProtocol) {
         self.pdfService = pdfService
@@ -45,6 +50,15 @@ final class InspectorViewModel {
         }
 
         await renderCurrentPage()
+        runPreflight()
+    }
+
+    func runPreflight() {
+        guard let doc = document else { return }
+        isPreflighting = true
+        let swiftChecks = preflightService.checkPageBoxes(pdfPath: doc.path)
+        preflightResult = PreflightService.mergeResults(rustChecks: [], swiftChecks: swiftChecks)
+        isPreflighting = false
     }
 
     func runInspection(apiKey: String? = nil, service: AIAnalysisServiceProtocol? = nil) async {
