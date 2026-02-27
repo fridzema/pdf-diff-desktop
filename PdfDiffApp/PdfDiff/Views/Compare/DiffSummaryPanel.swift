@@ -50,8 +50,8 @@ struct DiffSummaryPanel: View {
                        structural.fontChanges.isEmpty &&
                        structural.pageSizeChanges.isEmpty {
                         Label("No structural differences found", systemImage: "checkmark.circle")
-                            .foregroundStyle(.green)
-                            .padding(.vertical, 4)
+                            .foregroundStyle(DesignTokens.Status.pass)
+                            .padding(.vertical, DesignTokens.Spacing.xs)
                     }
                 }
 
@@ -105,7 +105,7 @@ struct DiffSummaryPanel: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .padding(12)
+            .padding(DesignTokens.Spacing.md)
         }
     }
 
@@ -122,12 +122,12 @@ struct DiffSummaryPanel: View {
                     Spacer()
                     Text(String(format: "%.2f%%", result.similarityScore * 100))
                         .font(.body.monospacedDigit().bold())
-                        .foregroundStyle(similarityColor(result.similarityScore))
+                        .foregroundStyle(DesignTokens.similarityColor(result.similarityScore))
                 }
 
                 // Progress bar
                 ProgressView(value: result.similarityScore)
-                    .tint(similarityColor(result.similarityScore))
+                    .tint(DesignTokens.similarityColor(result.similarityScore))
 
                 // Pixel counts
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
@@ -170,7 +170,7 @@ struct DiffSummaryPanel: View {
             .padding(.top, 4)
         } label: {
             Label("Pixel Comparison", systemImage: "square.split.2x1")
-                .font(.headline)
+                .font(DesignTokens.Typo.sectionHeader)
         }
     }
 
@@ -201,7 +201,7 @@ struct DiffSummaryPanel: View {
             .padding(.top, 4)
         } label: {
             Label("Metadata Changes (\(changes.count))", systemImage: "info.circle")
-                .font(.headline)
+                .font(DesignTokens.Typo.sectionHeader)
         }
     }
 
@@ -246,7 +246,7 @@ struct DiffSummaryPanel: View {
             .padding(.top, 4)
         } label: {
             Label("Text Changes (\(changes.count))", systemImage: "text.redline")
-                .font(.headline)
+                .font(DesignTokens.Typo.sectionHeader)
         }
     }
 
@@ -272,7 +272,7 @@ struct DiffSummaryPanel: View {
             .padding(.top, 4)
         } label: {
             Label("Font Changes (\(changes.count))", systemImage: "textformat")
-                .font(.headline)
+                .font(DesignTokens.Typo.sectionHeader)
         }
     }
 
@@ -302,16 +302,8 @@ struct DiffSummaryPanel: View {
             .padding(.top, 4)
         } label: {
             Label("Page Size Changes (\(changes.count))", systemImage: "rectangle.expand.vertical")
-                .font(.headline)
+                .font(DesignTokens.Typo.sectionHeader)
         }
-    }
-
-    // MARK: - Helpers
-
-    private func similarityColor(_ score: Double) -> Color {
-        if score >= 0.99 { return .green }
-        if score >= 0.90 { return .yellow }
-        return .red
     }
 
     // MARK: - AI Analysis Sections
@@ -326,7 +318,7 @@ struct DiffSummaryPanel: View {
                 .padding(.top, 4)
         } label: {
             Label("Visual Changes", systemImage: "eye")
-                .font(.headline)
+                .font(DesignTokens.Typo.sectionHeader)
         }
     }
 
@@ -340,7 +332,7 @@ struct DiffSummaryPanel: View {
                 .padding(.top, 4)
         } label: {
             Label("Text Comparison", systemImage: "text.magnifyingglass")
-                .font(.headline)
+                .font(DesignTokens.Typo.sectionHeader)
         }
     }
 
@@ -350,8 +342,8 @@ struct DiffSummaryPanel: View {
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                     HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: qcStatusIcon(item.status))
-                            .foregroundStyle(qcStatusColor(item.status))
+                        Image(systemName: DesignTokens.qcStatusIcon(item.status))
+                            .foregroundStyle(DesignTokens.qcStatusColor(item.status))
                             .frame(width: 16)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(item.check)
@@ -367,7 +359,7 @@ struct DiffSummaryPanel: View {
             .padding(.top, 4)
         } label: {
             Label("Prepress QC", systemImage: "checklist")
-                .font(.headline)
+                .font(DesignTokens.Typo.sectionHeader)
         }
     }
 
@@ -380,7 +372,7 @@ struct DiffSummaryPanel: View {
                         .font(.caption)
                         .textSelection(.enabled)
                         .padding(8)
-                        .background(.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+                        .background(DesignTokens.Status.warn.opacity(0.1), in: RoundedRectangle(cornerRadius: DesignTokens.Radius.sm))
                 } else {
                     Text(text)
                         .font(.caption)
@@ -391,23 +383,7 @@ struct DiffSummaryPanel: View {
             .padding(.top, 4)
         } label: {
             Label("Anomalies", systemImage: "exclamationmark.triangle")
-                .font(.headline)
-        }
-    }
-
-    private func qcStatusIcon(_ status: QCStatus) -> String {
-        switch status {
-        case .pass: "checkmark.circle.fill"
-        case .warn: "exclamationmark.triangle.fill"
-        case .fail: "xmark.circle.fill"
-        }
-    }
-
-    private func qcStatusColor(_ status: QCStatus) -> Color {
-        switch status {
-        case .pass: .green
-        case .warn: .yellow
-        case .fail: .red
+                .font(DesignTokens.Typo.sectionHeader)
         }
     }
 
