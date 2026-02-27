@@ -15,9 +15,9 @@ struct PageRendererView: View {
         VStack(spacing: 0) {
             if let label {
                 Text(label)
-                    .font(.caption)
+                    .font(DesignTokens.Typo.toolbarLabel)
                     .foregroundStyle(.secondary)
-                    .padding(.vertical, 4)
+                    .padding(.vertical, DesignTokens.Spacing.xs)
             }
 
             if isLoading {

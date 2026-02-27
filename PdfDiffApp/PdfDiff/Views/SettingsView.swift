@@ -35,13 +35,13 @@ struct SettingsView: View {
                 .foregroundStyle(.secondary)
         case .unverified:
             Label("Not verified", systemImage: "questionmark.circle")
-                .foregroundStyle(.orange)
+                .foregroundStyle(DesignTokens.Status.warn)
         case .valid:
             Label("Valid", systemImage: "checkmark.circle.fill")
-                .foregroundStyle(.green)
+                .foregroundStyle(DesignTokens.Status.pass)
         case .invalid:
             Label("Invalid key", systemImage: "xmark.circle.fill")
-                .foregroundStyle(.red)
+                .foregroundStyle(DesignTokens.Status.fail)
         }
     }
 }

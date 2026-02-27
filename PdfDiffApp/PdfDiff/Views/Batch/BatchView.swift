@@ -17,7 +17,7 @@ struct BatchView: View {
     }
 
     private var dropZone: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: DesignTokens.Spacing.lg) {
             Image(systemName: "folder.badge.plus")
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
@@ -25,7 +25,7 @@ struct BatchView: View {
                 .font(.title3)
                 .foregroundStyle(.secondary)
             Text("Files will be auto-matched by name (v1/v2, old/new)")
-                .font(.caption)
+                .font(DesignTokens.Typo.toolbarLabel)
                 .foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -48,7 +48,7 @@ struct BatchView: View {
     private var batchToolbar: some View {
         HStack {
             Text("\(viewModel.pairs.count) pairs found")
-                .font(.headline)
+                .font(DesignTokens.Typo.sectionHeader)
 
             Spacer()
 
@@ -56,7 +56,7 @@ struct BatchView: View {
                 ProgressView()
                     .controlSize(.small)
                 Text("\(viewModel.completedCount)/\(viewModel.totalCount)")
-                    .font(.caption)
+                    .font(DesignTokens.Typo.toolbarLabel)
             }
 
             Button("Process All") {
@@ -69,19 +69,19 @@ struct BatchView: View {
             }
             .disabled(viewModel.isProcessing)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, DesignTokens.Spacing.md)
+        .padding(.vertical, DesignTokens.Spacing.sm)
     }
 
     private var batchTable: some View {
         Table(viewModel.pairs) {
-            TableColumn("Left") { pair in Text(pair.leftName).font(.caption) }
-            TableColumn("Right") { pair in Text(pair.rightName).font(.caption) }
+            TableColumn("Left") { pair in Text(pair.leftName).font(DesignTokens.Typo.toolbarLabel) }
+            TableColumn("Right") { pair in Text(pair.rightName).font(DesignTokens.Typo.toolbarLabel) }
             TableColumn("Similarity") { pair in
                 if let score = pair.similarityScore {
                     Text(String(format: "%.1f%%", score * 100))
                         .font(.caption.monospacedDigit())
-                        .foregroundStyle(score > 0.99 ? .green : score > 0.9 ? .orange : .red)
+                        .foregroundStyle(score > 0.99 ? DesignTokens.Status.pass : score > 0.9 ? DesignTokens.Status.warn : DesignTokens.Status.fail)
                 } else {
                     Text("-").foregroundStyle(.secondary)
                 }
@@ -91,9 +91,9 @@ struct BatchView: View {
                 switch pair.status {
                 case .pending: Text("Pending").font(.caption).foregroundStyle(.secondary)
                 case .processing: ProgressView().controlSize(.mini)
-                case .complete: Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                case .complete: Image(systemName: "checkmark.circle.fill").foregroundStyle(DesignTokens.Status.pass)
                 case .error:
-                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
+                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(DesignTokens.Status.fail)
                 }
             }
             .width(60)
