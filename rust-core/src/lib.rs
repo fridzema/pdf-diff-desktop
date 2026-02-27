@@ -53,6 +53,10 @@ impl PdfDocument {
     pub fn render_separation(&self, page: u32, separation_index: u32, dpi: u32) -> Result<RenderedPage, PdfError> {
         self.inner.render_separation(page, separation_index, dpi)
     }
+
+    pub fn extract_page_text(&self, page: u32) -> Result<String, PdfError> {
+        self.inner.extract_page_text(page)
+    }
 }
 
 #[uniffi::export]
@@ -79,6 +83,15 @@ pub fn compute_structural_diff_uniffi(
         left.inner.as_ref(),
         right.inner.as_ref(),
     )
+}
+
+#[uniffi::export]
+pub fn run_preflight_uniffi(
+    doc: &PdfDocument,
+    dpi: u32,
+    max_ink_limit: f64,
+) -> Result<PreflightResult, PdfError> {
+    preflight::run_preflight(doc.inner.as_ref(), dpi, max_ink_limit)
 }
 
 #[uniffi::export]

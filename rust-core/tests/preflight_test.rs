@@ -51,3 +51,20 @@ fn test_page_consistency_single_page() {
     // Single-page doc: should pass
     assert!(checks.iter().all(|c| matches!(c.severity, PreflightSeverity::Pass)));
 }
+
+use pdf_diff_core::preflight::run_preflight;
+
+#[test]
+fn test_run_preflight_returns_result() {
+    let fixture = helpers::fixture_path("simple.pdf");
+    if !fixture.exists() {
+        helpers::create_simple_pdf(&fixture);
+    }
+    let engine = MuPdfEngine::new();
+    let doc = engine.open(fixture.to_str().unwrap()).unwrap();
+
+    let result = run_preflight(doc.as_ref(), 72, 300.0).unwrap();
+    assert!(!result.checks.is_empty(), "Should have at least one check");
+    assert!(result.summary.pass_count + result.summary.warn_count
+        + result.summary.fail_count + result.summary.info_count > 0);
+}
