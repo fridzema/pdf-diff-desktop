@@ -60,6 +60,8 @@ struct DetailAreaView: View {
                         return viewModel.document(forPath: path)
                     }
                 )
+            case .batch:
+                BatchView(viewModel: viewModel.batchViewModel)
             }
         }
     }

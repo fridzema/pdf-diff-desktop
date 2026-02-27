@@ -29,6 +29,12 @@ protocol AIAnalysisServiceProtocol: Sendable {
     func inspect(
         image: NSImage, metadata: PDFMetadata, pageMetadata: PDFPageMetadata
     ) async throws -> InspectionResult
+
+    func generateNarrative(
+        preflight: SwiftPreflightResult,
+        barcodes: [DetectedBarcode],
+        inspection: InspectionResult?
+    ) async throws -> String
 }
 
 final class MockAIAnalysisService: AIAnalysisServiceProtocol, @unchecked Sendable {
@@ -66,5 +72,13 @@ final class MockAIAnalysisService: AIAnalysisServiceProtocol, @unchecked Sendabl
             ],
             summary: "Mock inspection: 1 check passed"
         )
+    }
+
+    func generateNarrative(
+        preflight: SwiftPreflightResult,
+        barcodes: [DetectedBarcode],
+        inspection: InspectionResult?
+    ) async throws -> String {
+        return "Mock narrative summary"
     }
 }

@@ -130,3 +130,59 @@ pub struct PageSizeChange {
     pub right_width: f64,
     pub right_height: f64,
 }
+
+// --- Preflight types ---
+
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum PreflightSeverity {
+    Pass,
+    Warn,
+    Fail,
+    Info,
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum PreflightCategory {
+    InkCoverage,
+    PageConsistency,
+    PageBoxes,
+    Fonts,
+    Images,
+    ColorSpace,
+    SpotColors,
+    Transparency,
+    Overprint,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct PreflightCheck {
+    pub category: PreflightCategory,
+    pub severity: PreflightSeverity,
+    pub title: String,
+    pub detail: String,
+    pub page: Option<u32>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct PreflightSummary {
+    pub pass_count: u32,
+    pub warn_count: u32,
+    pub fail_count: u32,
+    pub info_count: u32,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct PreflightResult {
+    pub checks: Vec<PreflightCheck>,
+    pub summary: PreflightSummary,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct InkCoverageResult {
+    pub page: u32,
+    pub cyan: f64,
+    pub magenta: f64,
+    pub yellow: f64,
+    pub black: f64,
+    pub total: f64,
+}

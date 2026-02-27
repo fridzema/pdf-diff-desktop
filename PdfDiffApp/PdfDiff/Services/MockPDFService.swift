@@ -7,6 +7,7 @@ final class MockPDFService: PDFServiceProtocol, @unchecked Sendable {
 
     // Cache opened PDFDocuments by path for rendering
     private var pdfDocuments: [String: PDFDocument] = [:]
+    private let renderCache = RenderCache()
 
     func openDocument(path: String) throws -> OpenedDocument {
         if shouldThrow { throw NSError(domain: "Mock", code: 1) }
@@ -29,6 +30,11 @@ final class MockPDFService: PDFServiceProtocol, @unchecked Sendable {
     }
 
     func renderPage(document: OpenedDocument, page: UInt32, dpi: UInt32) throws -> RenderedBitmap {
+        let cacheKey = "\(document.path):\(page):\(dpi)"
+        if let cached = renderCache.get(key: cacheKey) {
+            return RenderedBitmap(image: cached, width: UInt32(cached.size.width), height: UInt32(cached.size.height))
+        }
+
         if let pdfDoc = pdfDocuments[document.path],
            let pdfPage = pdfDoc.page(at: Int(page)) {
             let pageRect = pdfPage.bounds(for: .mediaBox)
@@ -46,6 +52,7 @@ final class MockPDFService: PDFServiceProtocol, @unchecked Sendable {
             }
             image.unlockFocus()
 
+            renderCache.set(key: cacheKey, image: image)
             return RenderedBitmap(image: image, width: UInt32(width), height: UInt32(height))
         }
 

@@ -7,6 +7,7 @@ final class AppViewModel {
     enum ActiveTab: String, CaseIterable {
         case inspector = "Inspector"
         case compare = "Compare"
+        case batch = "Batch"
     }
 
     var documents: [OpenedDocument] = []
@@ -17,10 +18,12 @@ final class AppViewModel {
 
     let pdfService: PDFServiceProtocol
     let compareViewModel: CompareViewModel
+    let batchViewModel: BatchViewModel
 
     init(pdfService: PDFServiceProtocol) {
         self.pdfService = pdfService
         self.compareViewModel = CompareViewModel(pdfService: pdfService)
+        self.batchViewModel = BatchViewModel(pdfService: pdfService)
     }
 
     /// Documents currently selected in sidebar
