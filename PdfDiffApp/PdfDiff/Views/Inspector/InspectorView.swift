@@ -2,46 +2,148 @@ import SwiftUI
 
 struct InspectorView: View {
     @State var viewModel: InspectorViewModel
+    @Environment(SettingsManager.self) private var settingsManager: SettingsManager?
 
     var body: some View {
         VSplitView {
-            // Page renderer area
-            VStack {
-                HStack {
-                    Button(action: { viewModel.previousPage() }) {
-                        Image(systemName: "chevron.left")
-                    }
-                    .disabled(viewModel.currentPage == 0)
+            // Top area: page renderer + optional sidebar
+            VStack(spacing: 0) {
+                toolbar
+                Divider()
 
-                    Text("Page \(viewModel.currentPage + 1) of \(viewModel.document?.pageCount ?? 0)")
-
-                    Button(action: { viewModel.nextPage() }) {
-                        Image(systemName: "chevron.right")
-                    }
-                    .disabled(viewModel.currentPage >= (viewModel.document?.pageCount ?? 1) - 1)
-                }
-                .padding(.top, 8)
-
-                if viewModel.isRendering {
-                    ProgressView()
+                HStack(spacing: 0) {
+                    // Canvas with pins
+                    pageCanvas
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if let image = viewModel.renderedImage {
-                    ScrollView([.horizontal, .vertical]) {
-                        Image(nsImage: image)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
+
+                    // Inspection sidebar (slides in from right)
+                    if viewModel.showInspectionSidebar, let result = viewModel.inspectionResult {
+                        Divider()
+                        InspectionSidebar(
+                            result: result,
+                            selectedIssueId: $viewModel.selectedIssueId,
+                            showPins: $viewModel.showPins,
+                            onClose: { viewModel.showInspectionSidebar = false }
+                        )
+                        .transition(.move(edge: .trailing))
                     }
-                } else {
-                    Text("No page rendered")
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
             .frame(minHeight: 300)
+            .animation(.easeInOut(duration: 0.25), value: viewModel.showInspectionSidebar)
 
             // Metadata panel
             MetadataPanel(metadata: viewModel.metadata, pageMetadata: viewModel.pagesMetadata)
                 .frame(minHeight: 150, maxHeight: 300)
+        }
+    }
+
+    // MARK: - Toolbar
+
+    private var toolbar: some View {
+        HStack {
+            Button(action: { viewModel.previousPage() }) {
+                Image(systemName: "chevron.left")
+            }
+            .disabled(viewModel.currentPage == 0)
+
+            Text("Page \(viewModel.currentPage + 1) of \(viewModel.document?.pageCount ?? 0)")
+                .font(.body.monospacedDigit())
+
+            Button(action: { viewModel.nextPage() }) {
+                Image(systemName: "chevron.right")
+            }
+            .disabled(viewModel.currentPage >= (viewModel.document?.pageCount ?? 1) - 1)
+
+            Spacer()
+
+            if viewModel.isInspecting {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Inspecting...")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if let error = viewModel.inspectionError {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Button("Retry") {
+                    if let key = settingsManager?.apiKey, !key.isEmpty {
+                        Task { await viewModel.runInspection(apiKey: key) }
+                    }
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+
+            if viewModel.inspectionResult != nil && !viewModel.showInspectionSidebar {
+                Button {
+                    viewModel.showInspectionSidebar = true
+                } label: {
+                    Image(systemName: "sidebar.trailing")
+                }
+                .help("Show inspection results")
+            }
+
+            Button {
+                if let key = settingsManager?.apiKey, !key.isEmpty {
+                    Task { await viewModel.runInspection(apiKey: key) }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "wand.and.stars")
+                    Text("Inspect")
+                }
+            }
+            .disabled(!viewModel.canRunInspection || settingsManager?.hasAPIKey != true)
+            .help(settingsManager?.hasAPIKey != true ? "Set API key in Settings (\u{2318},)" : "Run AI inspection")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+    }
+
+    // MARK: - Page Canvas
+
+    @ViewBuilder
+    private var pageCanvas: some View {
+        if viewModel.isRendering {
+            ProgressView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if let image = viewModel.renderedImage {
+            ZoomableContainer {
+                ZStack {
+                    Image(nsImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+
+                    // Pin overlay
+                    if viewModel.showPins && viewModel.currentPage == 0,
+                       let result = viewModel.inspectionResult {
+                        GeometryReader { geo in
+                            ForEach(result.issues.filter { $0.location != nil }) { issue in
+                                let loc = issue.location!
+                                IssuePinView(
+                                    issue: issue,
+                                    isSelected: viewModel.selectedIssueId == issue.id
+                                ) {
+                                    viewModel.selectedIssueId = viewModel.selectedIssueId == issue.id ? nil : issue.id
+                                }
+                                .position(
+                                    x: loc.centerX * geo.size.width,
+                                    y: loc.centerY * geo.size.height
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            Text("No page rendered")
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 }
