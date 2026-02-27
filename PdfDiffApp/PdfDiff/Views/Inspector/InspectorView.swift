@@ -31,30 +31,19 @@ struct InspectorView: View {
             }
             .frame(minHeight: 300)
             .animation(.easeInOut(duration: 0.25), value: viewModel.showInspectionSidebar)
-
-            // Preflight + Metadata panel
-            VStack(spacing: 0) {
-                if let preflight = viewModel.preflightResult {
-                    PreflightPanel(
-                        result: preflight,
-                        onNavigateToPage: { page in
-                            viewModel.currentPage = page
-                            Task { await viewModel.loadDocument(viewModel.document!) }
-                        }
-                    )
-                    Divider()
-                } else if viewModel.isPreflighting {
-                    HStack {
-                        ProgressView().controlSize(.small)
-                        Text("Running preflight...").font(.caption).foregroundStyle(.secondary)
-                    }
-                    .padding(8)
-                    Divider()
-                }
-
-                MetadataPanel(metadata: viewModel.metadata, pageMetadata: viewModel.pagesMetadata)
+            .onReceive(NotificationCenter.default.publisher(for: .zoomIn)) { _ in
+                viewModel.zoomIn()
             }
-            .frame(minHeight: 150, maxHeight: 300)
+            .onReceive(NotificationCenter.default.publisher(for: .zoomOut)) { _ in
+                viewModel.zoomOut()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .zoomFit)) { _ in
+                viewModel.zoomFit()
+            }
+
+            // Metadata panel
+            MetadataPanel(metadata: viewModel.metadata, pageMetadata: viewModel.pagesMetadata)
+                .frame(minHeight: 150, maxHeight: 300)
         }
     }
 
@@ -75,17 +64,14 @@ struct InspectorView: View {
             }
             .disabled(viewModel.currentPage >= (viewModel.document?.pageCount ?? 1) - 1)
 
-            Picker("", selection: $viewModel.showSeparations) {
-                Text("Page").tag(false)
-                Text("Separations").tag(true)
-            }
-            .pickerStyle(.segmented)
-            .frame(width: 160)
-            .onChange(of: viewModel.showSeparations) { _, show in
-                if show && viewModel.separationChannels.isEmpty {
-                    Task { await viewModel.loadSeparations() }
-                }
-            }
+            Divider().frame(height: 20)
+
+            ZoomToolbar(
+                zoomLevel: $viewModel.zoomLevel,
+                onZoomIn: { viewModel.zoomIn() },
+                onZoomOut: { viewModel.zoomOut() },
+                onZoomFit: { viewModel.zoomFit() }
+            )
 
             Spacer()
 
@@ -120,19 +106,6 @@ struct InspectorView: View {
                 .help("Show inspection results")
             }
 
-            Menu {
-                Button("Export as PDF...") { viewModel.exportReport(format: .pdf) }
-                Button("Export as Markdown...") { viewModel.exportReport(format: .markdown) }
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "square.and.arrow.up")
-                    Text("Export")
-                }
-            }
-            .disabled(viewModel.document == nil)
-
-            Divider().frame(height: 20)
-
             Button {
                 if let key = settingsManager?.apiKey, !key.isEmpty {
                     Task { await viewModel.runInspection(apiKey: key) }
@@ -154,13 +127,11 @@ struct InspectorView: View {
 
     @ViewBuilder
     private var pageCanvas: some View {
-        if viewModel.showSeparations {
-            SeparationViewer(channels: $viewModel.separationChannels)
-        } else if viewModel.isRendering {
+        if viewModel.isRendering {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let image = viewModel.renderedImage {
-            ZoomableContainer {
+            ZoomableContainer(zoom: $viewModel.zoomLevel, offset: $viewModel.panOffset) {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -181,26 +152,6 @@ struct InspectorView: View {
                                         x: loc.centerX * geo.size.width,
                                         y: loc.centerY * geo.size.height
                                     )
-                                }
-                            }
-                        }
-                    }
-                    .overlay {
-                        // Barcode overlay
-                        if viewModel.showBarcodeOverlay && !viewModel.detectedBarcodes.isEmpty {
-                            GeometryReader { geo in
-                                ForEach(viewModel.detectedBarcodes) { barcode in
-                                    Rectangle()
-                                        .stroke(Color.blue, lineWidth: 2)
-                                        .background(Color.blue.opacity(0.1))
-                                        .frame(
-                                            width: barcode.boundingBox.width * geo.size.width,
-                                            height: barcode.boundingBox.height * geo.size.height
-                                        )
-                                        .position(
-                                            x: (barcode.boundingBox.midX) * geo.size.width,
-                                            y: (barcode.boundingBox.midY) * geo.size.height
-                                        )
                                 }
                             }
                         }

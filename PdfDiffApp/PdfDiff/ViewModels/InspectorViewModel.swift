@@ -1,7 +1,4 @@
-import Foundation
-import AppKit
 import SwiftUI
-import UniformTypeIdentifiers
 
 @Observable @MainActor
 final class InspectorViewModel {
@@ -13,6 +10,10 @@ final class InspectorViewModel {
     var isRendering = false
     var errorMessage: String?
 
+    // Zoom state
+    var zoomLevel: CGFloat = 1.0
+    var panOffset: CGSize = .zero
+
     // Inspection state
     var inspectionResult: InspectionResult?
     var isInspecting = false
@@ -21,23 +22,7 @@ final class InspectorViewModel {
     var showInspectionSidebar = false
     var showPins = true
 
-    // Preflight state
-    var preflightResult: SwiftPreflightResult?
-    var isPreflighting = false
-
-    // Barcode state
-    var detectedBarcodes: [DetectedBarcode] = []
-    var showBarcodeOverlay = true
-
-    // Separation state
-    var showSeparations = false
-    var separationChannels: [ChannelInfo] = []
-    var isLoadingSeparations = false
-
     private let pdfService: PDFServiceProtocol
-    private let preflightService = PreflightService()
-    private let barcodeService = BarcodeDetectionService()
-    private let reportGenerator = ReportGenerator()
 
     init(pdfService: PDFServiceProtocol) {
         self.pdfService = pdfService
@@ -62,21 +47,7 @@ final class InspectorViewModel {
             self.errorMessage = error.localizedDescription
         }
 
-        if doc.pageCount > 100 {
-            errorMessage = "Large document (\(doc.pageCount) pages). Navigation may be slow."
-        }
-
         await renderCurrentPage()
-        runPreflight()
-        await detectBarcodes()
-    }
-
-    func runPreflight() {
-        guard let doc = document else { return }
-        isPreflighting = true
-        let swiftChecks = preflightService.checkPageBoxes(pdfPath: doc.path)
-        preflightResult = PreflightService.mergeResults(rustChecks: [], swiftChecks: swiftChecks)
-        isPreflighting = false
     }
 
     func runInspection(apiKey: String? = nil, service: AIAnalysisServiceProtocol? = nil) async {
@@ -111,108 +82,37 @@ final class InspectorViewModel {
         isInspecting = false
     }
 
-    func detectBarcodes() async {
-        guard let image = renderedImage else { return }
-        detectedBarcodes = await barcodeService.detectBarcodes(in: image)
-
-        // Add barcode results to preflight
-        let barcodeChecks: [PreflightCheckItem]
-        if detectedBarcodes.isEmpty {
-            barcodeChecks = [PreflightCheckItem(
-                category: .barcodes, severity: .info,
-                title: "No barcodes detected", detail: "No barcodes found on this page.", page: currentPage
-            )]
-        } else {
-            barcodeChecks = detectedBarcodes.map { barcode in
-                PreflightCheckItem(
-                    category: .barcodes, severity: .pass,
-                    title: "\(barcode.displaySymbology) detected",
-                    detail: barcode.payload,
-                    page: currentPage
-                )
-            }
-        }
-
-        // Merge with existing preflight result
-        if let existing = preflightResult {
-            let nonBarcodeChecks = existing.checks.filter { $0.category != .barcodes }
-            preflightResult = SwiftPreflightResult(checks: nonBarcodeChecks + barcodeChecks)
-        } else {
-            preflightResult = SwiftPreflightResult(checks: barcodeChecks)
-        }
-    }
-
-    func loadSeparations() async {
-        guard let image = renderedImage else { return }
-        isLoadingSeparations = true
-        defer { isLoadingSeparations = false }
-
-        let colors: [(String, NSColor)] = [
-            ("Cyan", NSColor.cyan),
-            ("Magenta", NSColor.magenta),
-            ("Yellow", NSColor.yellow),
-            ("Black", NSColor.black),
-        ]
-
-        separationChannels = colors.map { name, color in
-            ChannelInfo(
-                name: name,
-                color: Color(nsColor: color),
-                image: image, // Placeholder — real channels from Rust later
-                coverage: 0.0
-            )
-        }
-    }
-
     func nextPage() {
         guard let doc = document, currentPage < doc.pageCount - 1 else { return }
         currentPage += 1
+        zoomFit()
         Task { await renderCurrentPage() }
     }
 
     func previousPage() {
         guard currentPage > 0 else { return }
         currentPage -= 1
+        zoomFit()
         Task { await renderCurrentPage() }
     }
 
-    func exportReport(format: ReportFormat) {
-        guard let doc = document else { return }
-
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = format == .pdf
-            ? [.pdf]
-            : [.plainText]
-        panel.nameFieldStringValue = "\(doc.fileName.replacingOccurrences(of: ".pdf", with: ""))-qc-report.\(format == .pdf ? "pdf" : "md")"
-
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-
-        switch format {
-        case .pdf:
-            if let data = reportGenerator.generatePDF(
-                documentName: doc.fileName,
-                preflight: preflightResult,
-                barcodes: detectedBarcodes,
-                inspection: inspectionResult,
-                aiNarrative: nil,
-                pageImage: renderedImage
-            ) {
-                try? data.write(to: url)
-            }
-        case .markdown:
-            let markdown = reportGenerator.generateMarkdown(
-                documentName: doc.fileName,
-                preflight: preflightResult,
-                barcodes: detectedBarcodes,
-                inspection: inspectionResult,
-                aiNarrative: nil
-            )
-            try? markdown.write(to: url, atomically: true, encoding: .utf8)
+    func zoomIn() {
+        withAnimation(.easeInOut(duration: 0.15)) {
+            zoomLevel = min(10.0, zoomLevel * 1.25)
         }
     }
 
-    enum ReportFormat {
-        case pdf, markdown
+    func zoomOut() {
+        withAnimation(.easeInOut(duration: 0.15)) {
+            zoomLevel = max(0.1, zoomLevel / 1.25)
+        }
+    }
+
+    func zoomFit() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            zoomLevel = 1.0
+            panOffset = .zero
+        }
     }
 
     private func renderCurrentPage() async {
