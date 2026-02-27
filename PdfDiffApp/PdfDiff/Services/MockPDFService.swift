@@ -60,9 +60,17 @@ final class MockPDFService: PDFServiceProtocol, @unchecked Sendable {
     }
 
     func metadata(document: OpenedDocument) throws -> PDFMetadata {
-        let pdfDoc = pdfDocuments[document.path]
-        let attrs = pdfDoc?.documentAttributes
+        guard let pdfDoc = pdfDocuments[document.path] else {
+            // Fallback mock metadata for test paths
+            return PDFMetadata(
+                title: nil, author: nil, creator: nil, producer: nil,
+                creationDate: nil, modificationDate: nil, pdfVersion: "1.7",
+                pageCount: document.pageCount,
+                fileSizeBytes: 1000, isEncrypted: false, colorProfiles: []
+            )
+        }
 
+        let attrs = pdfDoc.documentAttributes
         let fileSize = (try? FileManager.default.attributesOfItem(atPath: document.path)[.size] as? UInt64) ?? 0
 
         return PDFMetadata(
@@ -72,16 +80,25 @@ final class MockPDFService: PDFServiceProtocol, @unchecked Sendable {
             producer: attrs?[PDFDocumentAttribute.producerAttribute] as? String,
             creationDate: (attrs?[PDFDocumentAttribute.creationDateAttribute] as? Date)?.description,
             modificationDate: (attrs?[PDFDocumentAttribute.modificationDateAttribute] as? Date)?.description,
-            pdfVersion: pdfDoc?.majorVersion != nil ? "\(pdfDoc!.majorVersion).\(pdfDoc!.minorVersion)" : "unknown",
-            pageCount: UInt32(pdfDoc?.pageCount ?? 0),
+            pdfVersion: "\(pdfDoc.majorVersion).\(pdfDoc.minorVersion)",
+            pageCount: UInt32(pdfDoc.pageCount),
             fileSizeBytes: fileSize,
-            isEncrypted: pdfDoc?.isEncrypted ?? false,
+            isEncrypted: pdfDoc.isEncrypted,
             colorProfiles: []
         )
     }
 
     func pagesMetadata(document: OpenedDocument) throws -> [PDFPageMetadata] {
-        guard let pdfDoc = pdfDocuments[document.path] else { return [] }
+        guard let pdfDoc = pdfDocuments[document.path] else {
+            // Fallback mock metadata for test paths
+            return (0..<Int(document.pageCount)).map { i in
+                PDFPageMetadata(
+                    pageNumber: UInt32(i),
+                    widthPt: 612, heightPt: 792,
+                    rotation: 0, fontNames: [], imageCount: 0
+                )
+            }
+        }
 
         return (0..<pdfDoc.pageCount).map { i in
             let page = pdfDoc.page(at: i)

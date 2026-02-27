@@ -11,15 +11,31 @@ final class InspectorViewModel {
     var isRendering = false
     var errorMessage: String?
 
+    // Inspection state
+    var inspectionResult: InspectionResult?
+    var isInspecting = false
+    var inspectionError: String?
+    var selectedIssueId: Int?
+    var showInspectionSidebar = false
+    var showPins = true
+
     private let pdfService: PDFServiceProtocol
 
     init(pdfService: PDFServiceProtocol) {
         self.pdfService = pdfService
     }
 
+    var canRunInspection: Bool {
+        document != nil && renderedImage != nil && !isInspecting
+    }
+
     func loadDocument(_ doc: OpenedDocument) async {
         self.document = doc
         self.currentPage = 0
+        self.inspectionResult = nil
+        self.inspectionError = nil
+        self.selectedIssueId = nil
+        self.showInspectionSidebar = false
 
         do {
             self.metadata = try pdfService.metadata(document: doc)
@@ -29,6 +45,38 @@ final class InspectorViewModel {
         }
 
         await renderCurrentPage()
+    }
+
+    func runInspection(apiKey: String? = nil, service: AIAnalysisServiceProtocol? = nil) async {
+        guard let image = renderedImage,
+              let meta = metadata,
+              !pagesMetadata.isEmpty else { return }
+
+        let analysisService: AIAnalysisServiceProtocol
+        if let service = service {
+            analysisService = service
+        } else if let key = apiKey, !key.isEmpty {
+            analysisService = OpenRouterAIService(apiKey: key)
+        } else {
+            inspectionError = "No API key configured"
+            return
+        }
+
+        isInspecting = true
+        inspectionError = nil
+        inspectionResult = nil
+        selectedIssueId = nil
+
+        do {
+            inspectionResult = try await analysisService.inspect(
+                image: image, metadata: meta, pageMetadata: pagesMetadata[0]
+            )
+            showInspectionSidebar = true
+        } catch {
+            inspectionError = error.localizedDescription
+        }
+
+        isInspecting = false
     }
 
     func nextPage() {
