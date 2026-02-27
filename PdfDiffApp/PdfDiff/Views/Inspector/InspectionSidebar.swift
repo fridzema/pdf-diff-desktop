@@ -24,7 +24,7 @@ struct InspectionSidebar: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text("Inspection Results")
-                    .font(.headline)
+                    .font(DesignTokens.Typo.sectionHeader)
                 Spacer()
                 Button(action: onClose) {
                     Image(systemName: "xmark.circle.fill")
@@ -44,14 +44,14 @@ struct InspectionSidebar: View {
                 severityBadge(.pass, count: result.issues.filter { $0.severity == .pass }.count)
             }
         }
-        .padding(12)
+        .padding(DesignTokens.Spacing.md)
     }
 
     private func severityBadge(_ severity: IssueSeverity, count: Int) -> some View {
         HStack(spacing: 3) {
-            Image(systemName: severityIcon(severity))
+            Image(systemName: DesignTokens.issueSeverityIcon(severity))
                 .font(.caption2)
-                .foregroundStyle(severityColor(severity))
+                .foregroundStyle(DesignTokens.issueSeverityColor(severity))
             Text("\(count)")
                 .font(.caption.monospacedDigit())
         }
@@ -84,8 +84,8 @@ struct InspectionSidebar: View {
         let isSelected = selectedIssueId == issue.id
         return VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .top, spacing: 8) {
-                Image(systemName: severityIcon(issue.severity))
-                    .foregroundStyle(severityColor(issue.severity))
+                Image(systemName: DesignTokens.issueSeverityIcon(issue.severity))
+                    .foregroundStyle(DesignTokens.issueSeverityColor(issue.severity))
                     .frame(width: 16)
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -114,12 +114,12 @@ struct InspectionSidebar: View {
                 Spacer()
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, DesignTokens.Spacing.md)
+        .padding(.vertical, DesignTokens.Spacing.sm)
         .background(isSelected ? Color.accentColor.opacity(0.1) : Color.clear)
         .contentShape(Rectangle())
         .onTapGesture {
-            withAnimation(.easeInOut(duration: 0.2)) {
+            withAnimation(DesignTokens.Motion.snappy) {
                 selectedIssueId = isSelected ? nil : issue.id
             }
         }
@@ -146,26 +146,10 @@ struct InspectionSidebar: View {
             .toggleStyle(.switch)
             .controlSize(.small)
         }
-        .padding(12)
+        .padding(DesignTokens.Spacing.md)
     }
 
     // MARK: - Helpers
-
-    private func severityIcon(_ severity: IssueSeverity) -> String {
-        switch severity {
-        case .pass: "checkmark.circle.fill"
-        case .warn: "exclamationmark.triangle.fill"
-        case .fail: "xmark.circle.fill"
-        }
-    }
-
-    private func severityColor(_ severity: IssueSeverity) -> Color {
-        switch severity {
-        case .pass: .green
-        case .warn: .orange
-        case .fail: .red
-        }
-    }
 
     private func copyReport() {
         var report = "## AI Inspection Report\n\n"

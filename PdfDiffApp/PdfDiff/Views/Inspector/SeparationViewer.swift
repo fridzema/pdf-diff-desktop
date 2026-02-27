@@ -31,13 +31,13 @@ struct SeparationViewer: View {
             Divider()
 
             // Channel list
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
                 Text("Separations")
-                    .font(.headline)
+                    .font(DesignTokens.Typo.sectionHeader)
                     .padding(.bottom, 4)
 
                 ForEach($channels) { $channel in
-                    HStack(spacing: 8) {
+                    HStack(spacing: DesignTokens.Spacing.sm) {
                         Toggle("", isOn: $channel.isEnabled)
                             .toggleStyle(.checkbox)
                         Circle()
@@ -61,12 +61,12 @@ struct SeparationViewer: View {
                     Spacer()
                     Text(String(format: "%.1f%%", totalCoverage))
                         .font(.caption.monospacedDigit())
-                        .foregroundStyle(totalCoverage > 300 ? .red : .secondary)
+                        .foregroundStyle(totalCoverage > 300 ? DesignTokens.Status.fail : .secondary)
                 }
 
                 Spacer()
             }
-            .padding(12)
+            .padding(DesignTokens.Spacing.md)
             .frame(width: 200)
         }
     }

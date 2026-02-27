@@ -12,7 +12,7 @@ struct IssuePinView: View {
         ZStack {
             if isSelected {
                 Circle()
-                    .stroke(severityColor.opacity(0.4), lineWidth: 2)
+                    .stroke(DesignTokens.issueSeverityColor(issue.severity).opacity(0.4), lineWidth: 2)
                     .frame(width: 32, height: 32)
                     .scaleEffect(isPulsing ? 1.3 : 1.0)
                     .opacity(isPulsing ? 0.0 : 0.6)
@@ -20,7 +20,7 @@ struct IssuePinView: View {
             }
 
             Circle()
-                .fill(severityColor)
+                .fill(DesignTokens.issueSeverityColor(issue.severity))
                 .frame(width: isSelected ? 28 : 24, height: isSelected ? 28 : 24)
                 .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
 
@@ -35,10 +35,10 @@ struct IssuePinView: View {
         .popover(isPresented: $showPopover, arrowEdge: .bottom) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Image(systemName: severityIcon)
-                        .foregroundStyle(severityColor)
+                    Image(systemName: DesignTokens.issueSeverityIcon(issue.severity))
+                        .foregroundStyle(DesignTokens.issueSeverityColor(issue.severity))
                     Text(issue.title)
-                        .font(.headline)
+                        .font(DesignTokens.Typo.sectionHeader)
                 }
                 Text(issue.category.rawValue)
                     .font(.caption2)
@@ -50,7 +50,7 @@ struct IssuePinView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(12)
+            .padding(DesignTokens.Spacing.md)
             .frame(maxWidth: 260)
         }
         .onAppear {
@@ -61,19 +61,4 @@ struct IssuePinView: View {
         }
     }
 
-    private var severityColor: Color {
-        switch issue.severity {
-        case .fail: .red
-        case .warn: .orange
-        case .pass: .green
-        }
-    }
-
-    private var severityIcon: String {
-        switch issue.severity {
-        case .pass: "checkmark.circle.fill"
-        case .warn: "exclamationmark.triangle.fill"
-        case .fail: "xmark.circle.fill"
-        }
-    }
 }
