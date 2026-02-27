@@ -1,5 +1,6 @@
 pub mod ink_coverage;
 pub mod page_checks;
+pub mod separations;
 
 use crate::engine::traits::PdfDocumentHandle;
 use crate::error::PdfError;

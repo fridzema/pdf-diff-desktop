@@ -95,6 +95,15 @@ pub fn run_preflight_uniffi(
 }
 
 #[uniffi::export]
+pub fn extract_cmyk_channels_uniffi(
+    doc: &PdfDocument,
+    page: u32,
+    dpi: u32,
+) -> Result<Vec<preflight::separations::ChannelBitmap>, PdfError> {
+    preflight::separations::extract_cmyk_channels(doc.inner.as_ref(), page, dpi)
+}
+
+#[uniffi::export]
 pub fn generate_report(
     _left_path: String,
     _right_path: String,

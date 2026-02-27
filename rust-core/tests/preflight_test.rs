@@ -52,6 +52,7 @@ fn test_page_consistency_single_page() {
     assert!(checks.iter().all(|c| matches!(c.severity, PreflightSeverity::Pass)));
 }
 
+use pdf_diff_core::preflight::separations::extract_cmyk_channels;
 use pdf_diff_core::preflight::run_preflight;
 
 #[test]
@@ -67,4 +68,24 @@ fn test_run_preflight_returns_result() {
     assert!(!result.checks.is_empty(), "Should have at least one check");
     assert!(result.summary.pass_count + result.summary.warn_count
         + result.summary.fail_count + result.summary.info_count > 0);
+}
+
+#[test]
+fn test_extract_cmyk_channels() {
+    let fixture = helpers::fixture_path("simple.pdf");
+    if !fixture.exists() {
+        helpers::create_simple_pdf(&fixture);
+    }
+    let engine = MuPdfEngine::new();
+    let doc = engine.open(fixture.to_str().unwrap()).unwrap();
+
+    let channels = extract_cmyk_channels(doc.as_ref(), 0, 72).unwrap();
+    assert_eq!(channels.len(), 4, "Should have C, M, Y, K channels");
+    assert_eq!(channels[0].name, "Cyan");
+    assert_eq!(channels[1].name, "Magenta");
+    assert_eq!(channels[2].name, "Yellow");
+    assert_eq!(channels[3].name, "Black");
+    // Each channel is a grayscale bitmap (1 byte per pixel)
+    let expected_size = (channels[0].width * channels[0].height) as usize;
+    assert_eq!(channels[0].bitmap.len(), expected_size);
 }
