@@ -114,31 +114,30 @@ struct InspectorView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let image = viewModel.renderedImage {
             ZoomableContainer {
-                ZStack {
-                    Image(nsImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-
-                    // Pin overlay
-                    if viewModel.showPins && viewModel.currentPage == 0,
-                       let result = viewModel.inspectionResult {
-                        GeometryReader { geo in
-                            ForEach(result.issues.filter { $0.location != nil }) { issue in
-                                let loc = issue.location!
-                                IssuePinView(
-                                    issue: issue,
-                                    isSelected: viewModel.selectedIssueId == issue.id
-                                ) {
-                                    viewModel.selectedIssueId = viewModel.selectedIssueId == issue.id ? nil : issue.id
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .overlay {
+                        // Pin overlay — uses .overlay so GeometryReader matches the image bounds
+                        if viewModel.showPins && viewModel.currentPage == 0,
+                           let result = viewModel.inspectionResult {
+                            GeometryReader { geo in
+                                ForEach(result.issues.filter { $0.location != nil }) { issue in
+                                    let loc = issue.location!
+                                    IssuePinView(
+                                        issue: issue,
+                                        isSelected: viewModel.selectedIssueId == issue.id
+                                    ) {
+                                        viewModel.selectedIssueId = viewModel.selectedIssueId == issue.id ? nil : issue.id
+                                    }
+                                    .position(
+                                        x: loc.centerX * geo.size.width,
+                                        y: loc.centerY * geo.size.height
+                                    )
                                 }
-                                .position(
-                                    x: loc.centerX * geo.size.width,
-                                    y: loc.centerY * geo.size.height
-                                )
                             }
                         }
                     }
-                }
             }
         } else {
             Text("No page rendered")
