@@ -47,6 +47,24 @@ struct InspectorView: View {
             }
             return .ignored
         }
+        .onKeyPress(.init("1"), phases: .down) { press in
+            guard press.modifiers.contains(.command) else { return .ignored }
+            viewModel.toggleDrawer(.metadata)
+            return .handled
+        }
+        .onKeyPress(.init("2"), phases: .down) { press in
+            guard press.modifiers.contains(.command) else { return .ignored }
+            viewModel.toggleDrawer(.preflight)
+            return .handled
+        }
+        .onKeyPress(.init("3"), phases: .down) { press in
+            guard press.modifiers.contains(.command) else { return .ignored }
+            if viewModel.inspectionResult != nil {
+                viewModel.toggleDrawer(.inspection)
+                return .handled
+            }
+            return .ignored
+        }
     }
 
     @ViewBuilder

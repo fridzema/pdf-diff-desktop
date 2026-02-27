@@ -7,6 +7,21 @@ struct CompareView: View {
     var openFileAtPath: ((String) -> OpenedDocument?)? = nil
 
     var body: some View {
+        mainLayout
+            .onReceive(NotificationCenter.default.publisher(for: .zoomIn)) { _ in viewModel.zoomIn() }
+            .onReceive(NotificationCenter.default.publisher(for: .zoomOut)) { _ in viewModel.zoomOut() }
+            .onReceive(NotificationCenter.default.publisher(for: .zoomFit)) { _ in viewModel.zoomFit() }
+            .onKeyPress(.escape) {
+                if viewModel.activeDrawer != nil {
+                    viewModel.dismissDrawer()
+                    return .handled
+                }
+                return .ignored
+            }
+            .modifier(CompareKeyboardShortcuts(viewModel: viewModel))
+    }
+
+    private var mainLayout: some View {
         VStack(spacing: 0) {
             // Document slots
             documentSlots
@@ -43,16 +58,6 @@ struct CompareView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .zoomIn)) { _ in viewModel.zoomIn() }
-        .onReceive(NotificationCenter.default.publisher(for: .zoomOut)) { _ in viewModel.zoomOut() }
-        .onReceive(NotificationCenter.default.publisher(for: .zoomFit)) { _ in viewModel.zoomFit() }
-        .onKeyPress(.escape) {
-            if viewModel.activeDrawer != nil {
-                viewModel.dismissDrawer()
-                return .handled
-            }
-            return .ignored
         }
     }
 
@@ -294,5 +299,23 @@ struct CompareView: View {
                 panOffset: $viewModel.panOffset
             )
         }
+    }
+}
+
+private struct CompareKeyboardShortcuts: ViewModifier {
+    let viewModel: CompareViewModel
+
+    func body(content: Content) -> some View {
+        content
+            .onKeyPress(.init("1"), phases: .down) { press in
+                guard press.modifiers.contains(.command) else { return .ignored }
+                viewModel.toggleDrawer(.diffSummary)
+                return .handled
+            }
+            .onKeyPress(.init("2"), phases: .down) { press in
+                guard press.modifiers.contains(.command) else { return .ignored }
+                viewModel.toggleDrawer(.aiAnalysis)
+                return .handled
+            }
     }
 }
