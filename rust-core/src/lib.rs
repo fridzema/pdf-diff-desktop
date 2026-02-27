@@ -1,6 +1,7 @@
 pub mod diff;
 pub mod engine;
 pub mod error;
+pub mod preflight;
 pub mod types;
 
 use std::sync::Arc;
