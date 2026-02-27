@@ -21,6 +21,7 @@
 		434504459E14D82AEE1A23DC /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F33A19A29B4387088CAE843 /* KeychainHelper.swift */; };
 		4F6D52DF840E99B4D784EE42 /* RenderCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501E1A1B2A4B0725EACB1C54 /* RenderCache.swift */; };
 		50D5812C65CDD5171A92D8E1 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 127FD18EEEAC4FFCED5D9A46 /* OverlayView.swift */; };
+		5E51049AB2261BAFA11A1F05 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D869FF43032F43D193103DC /* DesignTokens.swift */; };
 		61AFC91A5256B48BD23E1BDA /* SettingsManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB27468CB0C2BD34E2CE6C55 /* SettingsManagerTests.swift */; };
 		62D33FB1CA540B382102309A /* PreflightResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB7F27C75C0164016254263 /* PreflightResultTests.swift */; };
 		65F348BD77651B4BE10801CD /* IssuePinView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDD30C9A987EC36BF62B760A /* IssuePinView.swift */; };
@@ -55,6 +56,7 @@
 		E668D2F8AD4410037794BE3A /* InspectionSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEE8F1A72C0C8F4E3154D291 /* InspectionSidebar.swift */; };
 		EB6735745D2BAD0C11625CD7 /* ZoomableContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F625D96B4EE406BBE6ABA67C /* ZoomableContainer.swift */; };
 		ECB050DD822615F15DFC30E2 /* SideBySideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84AAA7C587367E564AF9B07B /* SideBySideView.swift */; };
+		F443659168EB49C5EB09FACB /* GlassDrawer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3707528310BD03A86FC363C3 /* GlassDrawer.swift */; };
 		F467A640BDAB333A0F93FD57 /* InspectorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47A394809A868870EE4E9964 /* InspectorViewModel.swift */; };
 		FCADE24878A6C5258E6C57A0 /* CompareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002B58FADF8CC89DE5AB7EC2 /* CompareView.swift */; };
 		FEDC93342D88FBB44C9A4A5A /* CompareViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F580459C0C79B269E6563CD0 /* CompareViewModelTests.swift */; };
@@ -81,6 +83,7 @@
 		275B52D841FEABF9FA7BD6EE /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
 		280BEB03E04BFEE2B35BC2E3 /* SeparationViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeparationViewer.swift; sourceTree = "<group>"; };
 		2F33A19A29B4387088CAE843 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
+		3707528310BD03A86FC363C3 /* GlassDrawer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassDrawer.swift; sourceTree = "<group>"; };
 		428765335EE84FF77D906DD5 /* PdfDiffTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PdfDiffTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4381494DF0321594583CECC3 /* KeychainHelperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelperTests.swift; sourceTree = "<group>"; };
 		4631FD223E666C564AC10B1B /* DiffOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffOverlayView.swift; sourceTree = "<group>"; };
@@ -100,6 +103,7 @@
 		83C03E8C07191677AC6865CA /* DocumentSlotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentSlotView.swift; sourceTree = "<group>"; };
 		84AAA7C587367E564AF9B07B /* SideBySideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBySideView.swift; sourceTree = "<group>"; };
 		8C6469B8D884510B40F333FA /* InspectionResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectionResult.swift; sourceTree = "<group>"; };
+		8D869FF43032F43D193103DC /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		924DF56761C91AFB592D093F /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		96502848E6239CF8F4A0D948 /* PreflightServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreflightServiceTests.swift; sourceTree = "<group>"; };
 		9CE9F91025EEF4C275B47486 /* PreflightPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreflightPanel.swift; sourceTree = "<group>"; };
@@ -259,6 +263,7 @@
 		BB82F4CFF54CE8715766E27D /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				3707528310BD03A86FC363C3 /* GlassDrawer.swift */,
 				1A382E2B342B449684C21E37 /* PageRendererView.swift */,
 				F625D96B4EE406BBE6ABA67C /* ZoomableContainer.swift */,
 				C01AA41F823AB1A55E0EF37E /* ZoomToolbar.swift */,
@@ -290,6 +295,7 @@
 		D676DDBCB052C291AF6C7B43 /* PdfDiff */ = {
 			isa = PBXGroup;
 			children = (
+				8D869FF43032F43D193103DC /* DesignTokens.swift */,
 				C6936AEB51B1F7438206E560 /* Info.plist */,
 				F9A629553284DE20F7CCEF20 /* PdfDiffApp.swift */,
 				8AEA84468BDF88E191FBC260 /* Models */,
@@ -382,10 +388,12 @@
 				A53D11A4E2CCF1DFB56A359F /* BatchViewModel.swift in Sources */,
 				FCADE24878A6C5258E6C57A0 /* CompareView.swift in Sources */,
 				871C395B3BEFEC1AC8687390 /* CompareViewModel.swift in Sources */,
+				5E51049AB2261BAFA11A1F05 /* DesignTokens.swift in Sources */,
 				81C4CCD4FA07F3C69464341F /* DetectedBarcode.swift in Sources */,
 				C4F8276379F69F8F3635A6D2 /* DiffOverlayView.swift in Sources */,
 				C89BD1928ED76DCFA6FC6658 /* DiffSummaryPanel.swift in Sources */,
 				BF8ADD3017BC30982E0BC3E7 /* DocumentSlotView.swift in Sources */,
+				F443659168EB49C5EB09FACB /* GlassDrawer.swift in Sources */,
 				7DB777C6F21BF2DD89BD17E7 /* InspectionResult.swift in Sources */,
 				E668D2F8AD4410037794BE3A /* InspectionSidebar.swift in Sources */,
 				74CF115FA86ABAA2E35CD782 /* InspectorView.swift in Sources */,
