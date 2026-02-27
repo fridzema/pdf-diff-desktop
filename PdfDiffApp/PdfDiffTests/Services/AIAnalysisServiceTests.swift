@@ -99,6 +99,92 @@ struct AIAnalysisServiceTests {
         #expect(parsed.anomalies.isEmpty)
     }
 
+    @Test("parseInspectionResponse parses valid JSON with locations")
+    func parsesInspectionWithLocations() throws {
+        let json = """
+        {
+            "issues": [
+                {
+                    "id": 1, "severity": "fail", "category": "bleed",
+                    "title": "No bleed detected",
+                    "detail": "Artwork ends at trim edge",
+                    "location": {"x": 0.0, "y": 0.0, "w": 1.0, "h": 0.05}
+                },
+                {
+                    "id": 2, "severity": "warn", "category": "resolution",
+                    "title": "Low-res image",
+                    "detail": "Hero image is 150dpi",
+                    "location": {"x": 0.2, "y": 0.3, "w": 0.4, "h": 0.3}
+                }
+            ],
+            "summary": "2 issues found: 1 critical, 1 warning"
+        }
+        """.data(using: .utf8)!
+
+        let result = try OpenRouterAIService.parseInspectionResponse(json)
+        #expect(result.issues.count == 2)
+        #expect(result.issues[0].severity == .fail)
+        #expect(result.issues[0].category == .bleed)
+        #expect(result.issues[0].location?.x == 0.0)
+        #expect(result.issues[0].location?.h == 0.05)
+        #expect(result.issues[1].location?.centerX == 0.4)
+        #expect(result.summary.contains("2 issues"))
+    }
+
+    @Test("parseInspectionResponse handles null location")
+    func parsesInspectionNullLocation() throws {
+        let json = """
+        {
+            "issues": [
+                {
+                    "id": 1, "severity": "warn", "category": "colorSpace",
+                    "title": "RGB color space",
+                    "detail": "Document uses RGB instead of CMYK",
+                    "location": null
+                }
+            ],
+            "summary": "1 issue"
+        }
+        """.data(using: .utf8)!
+
+        let result = try OpenRouterAIService.parseInspectionResponse(json)
+        #expect(result.issues.count == 1)
+        #expect(result.issues[0].location == nil)
+    }
+
+    @Test("parseInspectionResponse handles empty issues array")
+    func parsesEmptyIssues() throws {
+        let json = """
+        {"issues": [], "summary": "No issues found"}
+        """.data(using: .utf8)!
+
+        let result = try OpenRouterAIService.parseInspectionResponse(json)
+        #expect(result.issues.isEmpty)
+        #expect(result.summary == "No issues found")
+    }
+
+    @Test("parseInspectionResponse handles unknown category gracefully")
+    func parsesUnknownCategory() throws {
+        let json = """
+        {
+            "issues": [
+                {
+                    "id": 1, "severity": "warn", "category": "unknownNewCheck",
+                    "title": "Some check",
+                    "detail": "Detail",
+                    "location": null
+                }
+            ],
+            "summary": "1 issue"
+        }
+        """.data(using: .utf8)!
+
+        // Unknown category should not crash — the issue should still be parsed
+        // with a fallback category or the parser should handle it
+        let result = try OpenRouterAIService.parseInspectionResponse(json)
+        #expect(result.issues.count == 1)
+    }
+
     @Test("encodeImageToBase64 produces valid base64 string")
     func encodesImage() throws {
         let image = NSImage(size: NSSize(width: 100, height: 100))

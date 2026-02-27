@@ -149,6 +149,46 @@ final class OpenRouterAIService: AIAnalysisServiceProtocol, @unchecked Sendable 
         return trimmed
     }
 
+    static func parseInspectionResponse(_ data: Data) throws -> InspectionResult {
+        struct RawLocation: Decodable {
+            let x: Double
+            let y: Double
+            let w: Double
+            let h: Double
+        }
+
+        struct RawIssue: Decodable {
+            let id: Int
+            let severity: String
+            let category: String
+            let title: String
+            let detail: String
+            let location: RawLocation?
+        }
+
+        struct RawInspectionResponse: Decodable {
+            let issues: [RawIssue]
+            let summary: String
+        }
+
+        let raw = try JSONDecoder().decode(RawInspectionResponse.self, from: data)
+
+        let issues = raw.issues.map { rawIssue in
+            InspectionIssue(
+                id: rawIssue.id,
+                severity: IssueSeverity(rawValue: rawIssue.severity) ?? .warn,
+                category: IssueCategory(rawValue: rawIssue.category) ?? .requiredText,
+                title: rawIssue.title,
+                detail: rawIssue.detail,
+                location: rawIssue.location.map {
+                    IssueLocation(x: $0.x, y: $0.y, w: $0.w, h: $0.h)
+                }
+            )
+        }
+
+        return InspectionResult(issues: issues, summary: raw.summary)
+    }
+
     static func buildContextText(
         leftText: String, rightText: String,
         diffResult: PDFDiffResult,
