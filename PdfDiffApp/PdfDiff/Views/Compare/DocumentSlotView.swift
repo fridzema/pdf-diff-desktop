@@ -12,22 +12,22 @@ struct DocumentSlotView: View {
     @State private var dropSucceeded = false
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: DesignTokens.Spacing.sm) {
             Text(label)
-                .font(.caption)
+                .font(DesignTokens.Typo.toolbarLabel)
                 .foregroundStyle(.secondary)
 
             if let doc = document {
                 // Filled slot
-                HStack(spacing: 8) {
+                HStack(spacing: DesignTokens.Spacing.sm) {
                     Image(systemName: "doc.richtext")
                         .foregroundStyle(Color.accentColor)
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
                         Text(doc.fileName)
                             .font(.body)
                             .lineLimit(1)
                         Text("\(doc.pageCount) page\(doc.pageCount == 1 ? "" : "s")")
-                            .font(.caption)
+                            .font(DesignTokens.Typo.toolbarLabel)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
@@ -39,46 +39,39 @@ struct DocumentSlotView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                .padding(10)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.accentColor.opacity(0.08))
-                        .stroke(Color.accentColor.opacity(0.3), lineWidth: 1)
-                )
+                .padding(DesignTokens.Spacing.md)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
             } else {
                 // Empty slot
-                VStack(spacing: 4) {
-                    Image(systemName: "plus.rectangle.on.rectangle")
+                VStack(spacing: DesignTokens.Spacing.xs) {
+                    Image(systemName: "arrow.down.doc")
                         .font(.title3)
                         .foregroundStyle(.secondary)
                     Text("Drop PDF here")
-                        .font(.caption)
+                        .font(DesignTokens.Typo.toolbarLabel)
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 60)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .strokeBorder(
-                            dropFailed ? Color.red : (isTargeted ? Color.accentColor : Color.secondary.opacity(0.3)),
-                            style: StrokeStyle(lineWidth: isTargeted ? 2 : 1, dash: [6])
-                        )
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(isTargeted ? Color.accentColor.opacity(0.05) : Color.clear)
-                        )
-                )
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
                 .overlay {
                     if dropSucceeded {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.title)
-                            .foregroundStyle(.green)
+                            .foregroundStyle(DesignTokens.Status.pass)
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                    if dropFailed {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title)
+                            .foregroundStyle(DesignTokens.Status.fail)
                             .transition(.scale.combined(with: .opacity))
                     }
                 }
-                .animation(.easeInOut(duration: 0.2), value: dropSucceeded)
+                .animation(DesignTokens.Motion.bouncy, value: isTargeted)
+                .animation(DesignTokens.Motion.snappy, value: dropSucceeded)
+                .animation(DesignTokens.Motion.snappy, value: dropFailed)
                 .scaleEffect(isTargeted ? 1.02 : 1.0)
-                .animation(.easeInOut(duration: 0.15), value: isTargeted)
             }
         }
         .onDrop(of: [.fileURL, .utf8PlainText], isTargeted: $isTargeted) { providers in
