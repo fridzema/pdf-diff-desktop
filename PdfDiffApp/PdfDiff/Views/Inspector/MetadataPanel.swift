@@ -15,7 +15,7 @@ struct MetadataPanel: View {
                 }
             }
             .pickerStyle(.segmented)
-            .padding(8)
+            .padding(DesignTokens.Spacing.sm)
 
             Divider()
 
@@ -31,7 +31,7 @@ struct MetadataPanel: View {
                     colorsContent
                 }
             }
-            .padding(8)
+            .padding(DesignTokens.Spacing.sm)
         }
     }
 

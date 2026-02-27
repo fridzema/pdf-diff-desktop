@@ -27,7 +27,7 @@ struct PreflightPanel: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
-                        .padding(.horizontal, 12)
+                        .padding(.horizontal, DesignTokens.Spacing.md)
                         .padding(.vertical, 2)
                     }
                 }
@@ -39,32 +39,32 @@ struct PreflightPanel: View {
     private var summaryBar: some View {
         HStack(spacing: 12) {
             Text("Preflight")
-                .font(.headline)
+                .font(DesignTokens.Typo.sectionHeader)
 
             Spacer()
 
             HStack(spacing: 8) {
                 if result.summary.passCount > 0 {
                     Label("\(result.summary.passCount)", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(DesignTokens.Status.pass)
                 }
                 if result.summary.warnCount > 0 {
                     Label("\(result.summary.warnCount)", systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(DesignTokens.Status.warn)
                 }
                 if result.summary.failCount > 0 {
                     Label("\(result.summary.failCount)", systemImage: "xmark.circle.fill")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(DesignTokens.Status.fail)
                 }
                 if result.summary.infoCount > 0 {
                     Label("\(result.summary.infoCount)", systemImage: "info.circle.fill")
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(DesignTokens.Status.info)
                 }
             }
             .font(.caption)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, DesignTokens.Spacing.md)
+        .padding(.vertical, DesignTokens.Spacing.sm)
     }
 
     private func checkRow(_ check: PreflightCheckItem) -> some View {
@@ -88,7 +88,7 @@ struct PreflightPanel: View {
                 .buttonStyle(.borderless)
             }
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, DesignTokens.Spacing.sm)
         .padding(.vertical, 3)
     }
 
@@ -99,15 +99,7 @@ struct PreflightPanel: View {
 
     @ViewBuilder
     private func severityDot(_ severity: PreflightCheckSeverity) -> some View {
-        switch severity {
-        case .pass:
-            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-        case .warn:
-            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
-        case .fail:
-            Image(systemName: "xmark.circle.fill").foregroundStyle(.red)
-        case .info:
-            Image(systemName: "info.circle.fill").foregroundStyle(.blue)
-        }
+        Image(systemName: DesignTokens.severityIcon(severity))
+            .foregroundStyle(DesignTokens.severityColor(severity))
     }
 }
