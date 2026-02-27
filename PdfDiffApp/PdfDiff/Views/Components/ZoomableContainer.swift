@@ -91,7 +91,7 @@ struct ZoomableContainer<Content: View>: View {
                 .gesture(magnifyGesture)
                 .gesture(panGesture)
                 .onTapGesture(count: 2) {
-                    withAnimation(.easeInOut(duration: 0.25)) {
+                    withAnimation(DesignTokens.Motion.snappy) {
                         if currentZoom > 1.05 {
                             setZoom(1.0)
                             setOffset(.zero)
@@ -125,7 +125,7 @@ struct ZoomableContainer<Content: View>: View {
             .onEnded { _ in
                 lastMagnification = 1.0
                 if currentZoom <= 1.0 {
-                    withAnimation(.easeOut(duration: 0.2)) {
+                    withAnimation(DesignTokens.Motion.snappy) {
                         setZoom(1.0)
                         setOffset(.zero)
                         dragStart = .zero

@@ -7,14 +7,14 @@ struct ZoomToolbar: View {
     var onZoomFit: () -> Void
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: DesignTokens.Spacing.xs) {
             Button(action: onZoomOut) {
                 Image(systemName: "minus.magnifyingglass")
             }
             .buttonStyle(.borderless)
 
             Text(String(format: "%.0f%%", zoomLevel * 100))
-                .font(.caption.monospacedDigit())
+                .font(DesignTokens.Typo.toolbarLabel.monospacedDigit())
                 .frame(width: 44)
                 .onTapGesture { onZoomFit() }
 
@@ -24,7 +24,7 @@ struct ZoomToolbar: View {
             .buttonStyle(.borderless)
 
             Button("Fit", action: onZoomFit)
-                .font(.caption)
+                .font(DesignTokens.Typo.toolbarLabel)
                 .buttonStyle(.borderless)
         }
     }
