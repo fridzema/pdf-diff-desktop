@@ -5,18 +5,17 @@ struct InspectorView: View {
     @Environment(SettingsManager.self) private var settingsManager: SettingsManager?
 
     var body: some View {
-        VSplitView {
-            // Top area: page renderer + optional sidebar
-            VStack(spacing: 0) {
-                toolbar
-                Divider()
+        VStack(spacing: 0) {
+            toolbar
+            Divider()
 
+            // Full-height canvas with overlay drawers
+            ZStack(alignment: .bottom) {
                 HStack(spacing: 0) {
-                    // Canvas with pins
                     pageCanvas
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                    // Inspection sidebar (slides in from right)
+                    // Inspection sidebar (right-side glass overlay)
                     if viewModel.showInspectionSidebar, let result = viewModel.inspectionResult {
                         Divider()
                         InspectionSidebar(
@@ -28,36 +27,74 @@ struct InspectorView: View {
                         .transition(.move(edge: .trailing))
                     }
                 }
-            }
-            .frame(minHeight: 300)
-            .animation(.easeInOut(duration: 0.25), value: viewModel.showInspectionSidebar)
-            .onReceive(NotificationCenter.default.publisher(for: .zoomIn)) { _ in
-                viewModel.zoomIn()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .zoomOut)) { _ in
-                viewModel.zoomOut()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .zoomFit)) { _ in
-                viewModel.zoomFit()
-            }
 
-            // Metadata panel
+                // Bottom overlay drawer
+                GeometricGlassDrawer(isPresented: viewModel.activeDrawer != nil) {
+                    drawerContent
+                }
+                .animation(DesignTokens.Motion.snappy, value: viewModel.activeDrawer)
+            }
+        }
+        .frame(minHeight: 300)
+        .animation(DesignTokens.Motion.snappy, value: viewModel.showInspectionSidebar)
+        .onReceive(NotificationCenter.default.publisher(for: .zoomIn)) { _ in viewModel.zoomIn() }
+        .onReceive(NotificationCenter.default.publisher(for: .zoomOut)) { _ in viewModel.zoomOut() }
+        .onReceive(NotificationCenter.default.publisher(for: .zoomFit)) { _ in viewModel.zoomFit() }
+        .onKeyPress(.escape) {
+            if viewModel.activeDrawer != nil {
+                viewModel.dismissDrawer()
+                return .handled
+            }
+            return .ignored
+        }
+    }
+
+    @ViewBuilder
+    private var drawerContent: some View {
+        switch viewModel.activeDrawer {
+        case .metadata:
             MetadataPanel(metadata: viewModel.metadata, pageMetadata: viewModel.pagesMetadata)
-                .frame(minHeight: 150, maxHeight: 300)
+        case .preflight:
+            if let result = viewModel.preflightResult {
+                PreflightPanel(result: result, onNavigateToPage: { page in
+                    viewModel.currentPage = page
+                })
+            } else {
+                Text("No preflight results")
+                    .foregroundStyle(.secondary)
+                    .padding(DesignTokens.Spacing.lg)
+            }
+        case .inspection:
+            if let result = viewModel.inspectionResult {
+                VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+                    Text("AI Inspection")
+                        .font(DesignTokens.Typo.sectionHeader)
+                    Text(result.summary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Text("No inspection results")
+                    .foregroundStyle(.secondary)
+                    .padding(DesignTokens.Spacing.lg)
+            }
+        case nil:
+            EmptyView()
         }
     }
 
     // MARK: - Toolbar
 
     private var toolbar: some View {
-        HStack {
+        HStack(spacing: DesignTokens.Spacing.sm) {
+            // Page navigation
             Button(action: { viewModel.previousPage() }) {
                 Image(systemName: "chevron.left")
             }
             .disabled(viewModel.currentPage == 0)
 
             Text("Page \(viewModel.currentPage + 1) of \(viewModel.document?.pageCount ?? 0)")
-                .font(.body.monospacedDigit())
+                .font(DesignTokens.Typo.bodyMono)
 
             Button(action: { viewModel.nextPage() }) {
                 Image(systemName: "chevron.right")
@@ -75,17 +112,18 @@ struct InspectorView: View {
 
             Spacer()
 
+            // Inspection status/controls
             if viewModel.isInspecting {
                 ProgressView()
                     .controlSize(.small)
                 Text("Inspecting...")
-                    .font(.caption)
+                    .font(DesignTokens.Typo.toolbarLabel)
                     .foregroundStyle(.secondary)
             } else if let error = viewModel.inspectionError {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(DesignTokens.Status.warn)
                 Text(error)
-                    .font(.caption)
+                    .font(DesignTokens.Typo.toolbarLabel)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                 Button("Retry") {
@@ -97,30 +135,50 @@ struct InspectorView: View {
                 .controlSize(.small)
             }
 
-            if viewModel.inspectionResult != nil && !viewModel.showInspectionSidebar {
-                Button {
-                    viewModel.showInspectionSidebar = true
-                } label: {
-                    Image(systemName: "sidebar.trailing")
-                }
-                .help("Show inspection results")
-            }
-
             Button {
                 if let key = settingsManager?.apiKey, !key.isEmpty {
                     Task { await viewModel.runInspection(apiKey: key) }
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: DesignTokens.Spacing.xs) {
                     Image(systemName: "wand.and.stars")
                     Text("Inspect")
                 }
             }
             .disabled(!viewModel.canRunInspection || settingsManager?.hasAPIKey != true)
             .help(settingsManager?.hasAPIKey != true ? "Set API key in Settings (\u{2318},)" : "Run AI inspection")
+
+            Divider().frame(height: 20)
+
+            // Drawer toggle buttons
+            drawerToggle(.metadata, icon: "info.circle", label: "Metadata")
+            drawerToggle(.preflight, icon: "checkmark.shield", label: "Preflight")
+
+            if viewModel.inspectionResult != nil {
+                drawerToggle(.inspection, icon: "wand.and.stars", label: "AI Results")
+            }
+
+            if viewModel.inspectionResult != nil && !viewModel.showInspectionSidebar {
+                Button {
+                    viewModel.showInspectionSidebar = true
+                } label: {
+                    Image(systemName: "sidebar.trailing")
+                }
+                .help("Show inspection sidebar")
+            }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, DesignTokens.Spacing.md)
+        .padding(.vertical, DesignTokens.Spacing.sm)
+    }
+
+    private func drawerToggle(_ panel: InspectorViewModel.DrawerPanel, icon: String, label: String) -> some View {
+        Button {
+            viewModel.toggleDrawer(panel)
+        } label: {
+            Image(systemName: icon)
+        }
+        .help(label)
+        .foregroundStyle(viewModel.activeDrawer == panel ? Color.accentColor : .secondary)
     }
 
     // MARK: - Page Canvas
