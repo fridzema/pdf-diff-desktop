@@ -62,6 +62,10 @@ final class InspectorViewModel {
             self.errorMessage = error.localizedDescription
         }
 
+        if doc.pageCount > 100 {
+            errorMessage = "Large document (\(doc.pageCount) pages). Navigation may be slow."
+        }
+
         await renderCurrentPage()
         runPreflight()
         await detectBarcodes()
