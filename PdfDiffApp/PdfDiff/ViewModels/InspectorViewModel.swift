@@ -22,6 +22,25 @@ final class InspectorViewModel {
     var showInspectionSidebar = false
     var showPins = true
 
+    // Drawer state
+    enum DrawerPanel: String, CaseIterable {
+        case metadata, preflight, inspection
+    }
+    var activeDrawer: DrawerPanel? = nil
+    var preflightResult: SwiftPreflightResult? = nil
+
+    func toggleDrawer(_ panel: DrawerPanel) {
+        withAnimation(DesignTokens.Motion.snappy) {
+            activeDrawer = activeDrawer == panel ? nil : panel
+        }
+    }
+
+    func dismissDrawer() {
+        withAnimation(DesignTokens.Motion.snappy) {
+            activeDrawer = nil
+        }
+    }
+
     private let pdfService: PDFServiceProtocol
 
     init(pdfService: PDFServiceProtocol) {
