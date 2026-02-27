@@ -1,6 +1,7 @@
 import Foundation
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 @Observable @MainActor
 final class InspectorViewModel {
@@ -36,6 +37,7 @@ final class InspectorViewModel {
     private let pdfService: PDFServiceProtocol
     private let preflightService = PreflightService()
     private let barcodeService = BarcodeDetectionService()
+    private let reportGenerator = ReportGenerator()
 
     init(pdfService: PDFServiceProtocol) {
         self.pdfService = pdfService
@@ -168,6 +170,45 @@ final class InspectorViewModel {
         guard currentPage > 0 else { return }
         currentPage -= 1
         Task { await renderCurrentPage() }
+    }
+
+    func exportReport(format: ReportFormat) {
+        guard let doc = document else { return }
+
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = format == .pdf
+            ? [.pdf]
+            : [.plainText]
+        panel.nameFieldStringValue = "\(doc.fileName.replacingOccurrences(of: ".pdf", with: ""))-qc-report.\(format == .pdf ? "pdf" : "md")"
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        switch format {
+        case .pdf:
+            if let data = reportGenerator.generatePDF(
+                documentName: doc.fileName,
+                preflight: preflightResult,
+                barcodes: detectedBarcodes,
+                inspection: inspectionResult,
+                aiNarrative: nil,
+                pageImage: renderedImage
+            ) {
+                try? data.write(to: url)
+            }
+        case .markdown:
+            let markdown = reportGenerator.generateMarkdown(
+                documentName: doc.fileName,
+                preflight: preflightResult,
+                barcodes: detectedBarcodes,
+                inspection: inspectionResult,
+                aiNarrative: nil
+            )
+            try? markdown.write(to: url, atomically: true, encoding: .utf8)
+        }
+    }
+
+    enum ReportFormat {
+        case pdf, markdown
     }
 
     private func renderCurrentPage() async {

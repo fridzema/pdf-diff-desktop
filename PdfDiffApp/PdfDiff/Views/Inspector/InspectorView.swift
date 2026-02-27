@@ -120,6 +120,19 @@ struct InspectorView: View {
                 .help("Show inspection results")
             }
 
+            Menu {
+                Button("Export as PDF...") { viewModel.exportReport(format: .pdf) }
+                Button("Export as Markdown...") { viewModel.exportReport(format: .markdown) }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "square.and.arrow.up")
+                    Text("Export")
+                }
+            }
+            .disabled(viewModel.document == nil)
+
+            Divider().frame(height: 20)
+
             Button {
                 if let key = settingsManager?.apiKey, !key.isEmpty {
                     Task { await viewModel.runInspection(apiKey: key) }
