@@ -67,22 +67,24 @@ struct DetailAreaView: View {
     }
 
     private var tabBar: some View {
-        HStack {
-            Picker("", selection: Binding(
-                get: { viewModel.activeTab },
-                set: { viewModel.activeTab = $0 }
-            )) {
-                ForEach(AppViewModel.ActiveTab.allCases, id: \.self) { tab in
-                    Text(tab.rawValue).tag(tab)
+        GlassEffectContainer {
+            HStack {
+                Spacer()
+                Picker("", selection: Binding(
+                    get: { viewModel.activeTab },
+                    set: { viewModel.activeTab = $0 }
+                )) {
+                    ForEach(AppViewModel.ActiveTab.allCases, id: \.self) { tab in
+                        Text(tab.rawValue).tag(tab)
+                    }
                 }
+                .pickerStyle(.segmented)
+                .frame(width: 240)
+                Spacer()
             }
-            .pickerStyle(.segmented)
-            .frame(width: 200)
-
-            Spacer()
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, DesignTokens.Spacing.md)
+        .padding(.vertical, DesignTokens.Spacing.sm)
     }
 }
 
@@ -113,7 +115,7 @@ struct SidebarView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .padding(12)
+                .padding(DesignTokens.Spacing.md)
             }
         }
     }
@@ -123,17 +125,18 @@ struct DocumentRow: View {
     let document: OpenedDocument
 
     var body: some View {
-        HStack {
+        HStack(spacing: DesignTokens.Spacing.sm) {
             Image(systemName: "doc.richtext")
                 .foregroundStyle(.secondary)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
                 Text(document.fileName)
                     .lineLimit(1)
                 Text("\(document.pageCount) page\(document.pageCount == 1 ? "" : "s")")
-                    .font(.caption)
+                    .font(DesignTokens.Typo.toolbarLabel)
                     .foregroundStyle(.secondary)
             }
         }
+        .frame(minHeight: 36)
     }
 }
 
@@ -166,7 +169,7 @@ struct DropZoneView: View {
     let viewModel: AppViewModel
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: DesignTokens.Spacing.lg) {
             Image(systemName: "doc.badge.plus")
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
@@ -177,6 +180,6 @@ struct DropZoneView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(viewModel.isDropTargeted ? Color.accentColor.opacity(0.1) : Color.clear)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
     }
 }
