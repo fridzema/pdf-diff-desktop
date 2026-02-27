@@ -24,6 +24,7 @@
 		61AFC91A5256B48BD23E1BDA /* SettingsManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB27468CB0C2BD34E2CE6C55 /* SettingsManagerTests.swift */; };
 		62D33FB1CA540B382102309A /* PreflightResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB7F27C75C0164016254263 /* PreflightResultTests.swift */; };
 		65F348BD77651B4BE10801CD /* IssuePinView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDD30C9A987EC36BF62B760A /* IssuePinView.swift */; };
+		6DE833E93196308FAEF30058 /* ZoomToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01AA41F823AB1A55E0EF37E /* ZoomToolbar.swift */; };
 		6F0F986D16DEDD97EDDA8482 /* MetadataPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6C6605C56719739DE6BF5C /* MetadataPanel.swift */; };
 		70D0AA8F7976DDB79B226E76 /* PreflightServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96502848E6239CF8F4A0D948 /* PreflightServiceTests.swift */; };
 		74ABAF950B9B26612EA1FA6B /* PageRendererView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A382E2B342B449684C21E37 /* PageRendererView.swift */; };
@@ -108,6 +109,7 @@
 		B2CBED07D22A55DD226D11F7 /* SwipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeView.swift; sourceTree = "<group>"; };
 		B97DA3BF53E684E623DC5C63 /* BatchComparisonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchComparisonTests.swift; sourceTree = "<group>"; };
 		BC088AA51C8E6AFF896B81D9 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
+		C01AA41F823AB1A55E0EF37E /* ZoomToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomToolbar.swift; sourceTree = "<group>"; };
 		C6936AEB51B1F7438206E560 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CDD30C9A987EC36BF62B760A /* IssuePinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssuePinView.swift; sourceTree = "<group>"; };
 		CDDDC320643C06F9D1FD587B /* OnionSkinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnionSkinView.swift; sourceTree = "<group>"; };
@@ -259,6 +261,7 @@
 			children = (
 				1A382E2B342B449684C21E37 /* PageRendererView.swift */,
 				F625D96B4EE406BBE6ABA67C /* ZoomableContainer.swift */,
+				C01AA41F823AB1A55E0EF37E /* ZoomToolbar.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -342,7 +345,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2600;
 			};
 			buildConfigurationList = 666DC730201B5DD626E8BCE8 /* Build configuration list for PBXProject "PdfDiff" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -407,6 +410,7 @@
 				2E54E90A8AACAC8E135BBCE5 /* SettingsView.swift in Sources */,
 				ECB050DD822615F15DFC30E2 /* SideBySideView.swift in Sources */,
 				E11093510B6514226F11F4C3 /* SwipeView.swift in Sources */,
+				6DE833E93196308FAEF30058 /* ZoomToolbar.swift in Sources */,
 				EB6735745D2BAD0C11625CD7 /* ZoomableContainer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -491,7 +495,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -548,7 +552,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -607,7 +611,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pdfdiff.PdfDiff;
 				PRODUCT_NAME = PdfDiff;
@@ -628,7 +632,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pdfdiff.PdfDiff;
 				PRODUCT_NAME = PdfDiff;
