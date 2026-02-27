@@ -410,4 +410,41 @@ final class OpenRouterAIService: AIAnalysisServiceProtocol, @unchecked Sendable 
             ],
         ]
     }
+
+    func generateNarrative(
+        preflight: SwiftPreflightResult,
+        barcodes: [DetectedBarcode],
+        inspection: InspectionResult?
+    ) async throws -> String {
+        var context = "Preflight: \(preflight.summary.passCount) pass, \(preflight.summary.warnCount) warn, \(preflight.summary.failCount) fail."
+        if !barcodes.isEmpty {
+            context += " Barcodes: \(barcodes.map { "\($0.displaySymbology): \($0.payload)" }.joined(separator: ", "))."
+        }
+        if let inspection = inspection {
+            context += " AI Inspection: \(inspection.summary)"
+        }
+
+        let body: [String: Any] = [
+            "model": model,
+            "temperature": 0,
+            "max_tokens": 500,
+            "messages": [
+                ["role": "system", "content": "You are a prepress QC specialist. Write a concise 2-3 sentence plain-language summary of the QC findings suitable for client communication. Be factual and professional."],
+                ["role": "user", "content": context],
+            ],
+        ]
+
+        let bodyData = try JSONSerialization.data(withJSONObject: body)
+        var request = URLRequest(url: URL(string: "https://openrouter.ai/api/v1/chat/completions")!)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = bodyData
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let choices = json?["choices"] as? [[String: Any]]
+        let message = choices?.first?["message"] as? [String: Any]
+        return message?["content"] as? String ?? "Unable to generate narrative."
+    }
 }
