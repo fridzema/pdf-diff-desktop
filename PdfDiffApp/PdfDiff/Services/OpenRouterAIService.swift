@@ -97,6 +97,49 @@ final class OpenRouterAIService: AIAnalysisServiceProtocol, @unchecked Sendable 
         }
     }
 
+    func inspect(
+        image: NSImage, metadata: PDFMetadata, pageMetadata: PDFPageMetadata
+    ) async throws -> InspectionResult {
+        let imageB64 = try Self.encodeImageToBase64(image, maxBytes: 1_000_000)
+        let contextText = Self.buildInspectionContext(metadata: metadata, pageMetadata: pageMetadata)
+        let requestBody = Self.buildInspectionRequestBody(model: model, imageB64: imageB64, contextText: contextText)
+
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("PDF Diff Desktop", forHTTPHeaderField: "X-Title")
+        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        request.timeoutInterval = 60
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let http = response as? HTTPURLResponse else {
+            throw AIAnalysisError.networkError("No HTTP response")
+        }
+
+        switch http.statusCode {
+        case 200: break
+        case 401: throw AIAnalysisError.invalidAPIKey
+        case 429: throw AIAnalysisError.rateLimited
+        default: throw AIAnalysisError.networkError("HTTP \(http.statusCode)")
+        }
+
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let choices = json["choices"] as? [[String: Any]],
+              let message = choices.first?["message"] as? [String: Any],
+              let content = message["content"] as? String else {
+            throw AIAnalysisError.invalidResponse("Could not extract content from response")
+        }
+
+        let cleanedContent = Self.extractJSON(from: content)
+        guard let contentData = cleanedContent.data(using: .utf8) else {
+            throw AIAnalysisError.invalidResponse("Content not valid UTF-8")
+        }
+
+        return try Self.parseInspectionResponse(contentData)
+    }
+
     // MARK: - Static Helpers (testable)
 
     static func encodeImageToBase64(_ image: NSImage, maxBytes: Int) throws -> String {
@@ -269,6 +312,99 @@ final class OpenRouterAIService: AIAnalysisServiceProtocol, @unchecked Sendable 
                     ["type": "image_url", "image_url": ["url": "data:image/jpeg;base64,\(rightB64)", "detail": "high"]],
                     ["type": "text", "text": "Diff bitmap (changes highlighted in red):"],
                     ["type": "image_url", "image_url": ["url": "data:image/jpeg;base64,\(diffB64)", "detail": "high"]],
+                    ["type": "text", "text": contextText],
+                ]],
+            ],
+        ]
+    }
+
+    static func buildInspectionContext(metadata: PDFMetadata, pageMetadata: PDFPageMetadata) -> String {
+        var parts: [String] = []
+        parts.append("--- DOCUMENT METADATA ---")
+        parts.append("PDF Version: \(metadata.pdfVersion)")
+        parts.append("Pages: \(metadata.pageCount)")
+        parts.append("File size: \(metadata.fileSizeBytes) bytes")
+        parts.append("Encrypted: \(metadata.isEncrypted)")
+        if !metadata.colorProfiles.isEmpty {
+            parts.append("Color profiles: \(metadata.colorProfiles.joined(separator: ", "))")
+        }
+        parts.append("--- PAGE 1 ---")
+        parts.append("Size: \(pageMetadata.widthPt)pt x \(pageMetadata.heightPt)pt")
+        parts.append("Rotation: \(pageMetadata.rotation)°")
+        if !pageMetadata.fontNames.isEmpty {
+            parts.append("Fonts: \(pageMetadata.fontNames.joined(separator: ", "))")
+        }
+        parts.append("Images: \(pageMetadata.imageCount)")
+        return parts.joined(separator: "\n")
+    }
+
+    static func buildInspectionRequestBody(model: String, imageB64: String, contextText: String) -> [String: Any] {
+        let systemPrompt = """
+        You are an expert prepress QC inspector and packaging compliance analyst. You inspect a single PDF artwork page for print-readiness and regulatory compliance issues.
+
+        You will receive one image: a rendered PDF page. You will also receive document metadata (fonts, color profiles, page dimensions).
+
+        Respond with valid JSON only (no markdown, no code fences) with exactly these keys:
+
+        {
+            "issues": [
+                {
+                    "id": 1,
+                    "severity": "pass|warn|fail",
+                    "category": "category_name",
+                    "title": "Short title",
+                    "detail": "Full explanation of the issue",
+                    "location": {"x": 0.0, "y": 0.0, "w": 1.0, "h": 0.1} or null
+                }
+            ],
+            "summary": "One-paragraph overall assessment"
+        }
+
+        Location coordinates are percentages (0.0 to 1.0) relative to the page:
+        - x: distance from left edge
+        - y: distance from top edge
+        - w: width as fraction of page width
+        - h: height as fraction of page height
+        Set location to null for page-wide issues (e.g., wrong color space).
+
+        Valid categories: bleed, resolution, colorSpace, fontEmbedding, overprint, transparency, barcodeUPC, requiredText, nutritionPanel, allergenWarning, recyclingSymbols, countryOfOrigin, legalDisclaimers
+
+        Evaluate ALL of these checks:
+
+        PREPRESS QC:
+        - Bleed/trim safety: Does artwork extend beyond the visible content area? Are critical elements too close to edges?
+        - Image resolution: Do images appear sharp at print size, or pixelated/low-res?
+        - Color space: Based on color profiles metadata, is the document CMYK-ready or still RGB?
+        - Font embedding: Are fonts listed in metadata standard print fonts? Any potential embedding issues?
+        - Overprint/knockout: Any visible overprint artifacts or misregistration signs?
+        - Transparency: Any visible transparency flattening issues?
+
+        PACKAGING REGULATORY:
+        - Required text: Are mandatory text elements present and legible (ingredient lists, warnings, etc.)?
+        - Barcode/UPC: Is a barcode present? Does it appear intact and scannable?
+        - Nutrition panel: If a nutrition facts panel is present, is it properly formatted?
+        - Allergen warnings: Are allergen declarations visible and prominent?
+        - Recycling symbols: Are recycling/disposal symbols present?
+        - Country of origin: Is country of origin text present?
+        - Legal disclaimers: Are trademark symbols (R), (TM) and required legal text present?
+
+        For each check, report severity:
+        - "pass": Check passes, no issues
+        - "warn": Minor concern or could not fully verify
+        - "fail": Clear issue that needs attention
+
+        Include all checks in the issues array, even passing ones. Be specific about what you see.
+        """
+
+        return [
+            "model": model,
+            "temperature": 0,
+            "max_tokens": 3000,
+            "messages": [
+                ["role": "system", "content": systemPrompt],
+                ["role": "user", "content": [
+                    ["type": "text", "text": "Inspect this PDF artwork page for prepress and packaging compliance issues:"],
+                    ["type": "image_url", "image_url": ["url": "data:image/jpeg;base64,\(imageB64)", "detail": "high"]],
                     ["type": "text", "text": contextText],
                 ]],
             ],

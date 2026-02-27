@@ -185,6 +185,55 @@ struct AIAnalysisServiceTests {
         #expect(result.issues.count == 1)
     }
 
+    @Test("MockAIAnalysisService inspect returns default result")
+    @MainActor
+    func mockInspectReturnsDefault() async throws {
+        let mock = MockAIAnalysisService()
+        let dummyImage = NSImage(size: NSSize(width: 100, height: 100))
+        let metadata = PDFMetadata(
+            title: "Test", author: nil, creator: nil, producer: nil,
+            creationDate: nil, modificationDate: nil, pdfVersion: "1.7",
+            pageCount: 1, fileSizeBytes: 1000, isEncrypted: false, colorProfiles: ["sRGB"]
+        )
+        let pageMetadata = PDFPageMetadata(
+            pageNumber: 0, widthPt: 612, heightPt: 792,
+            rotation: 0, fontNames: ["Helvetica"], imageCount: 2
+        )
+
+        let result = try await mock.inspect(
+            image: dummyImage, metadata: metadata, pageMetadata: pageMetadata
+        )
+        #expect(!result.issues.isEmpty)
+        #expect(!result.summary.isEmpty)
+        #expect(mock.inspectCallCount == 1)
+    }
+
+    @Test("MockAIAnalysisService inspect throws when configured")
+    @MainActor
+    func mockInspectThrows() async {
+        let mock = MockAIAnalysisService()
+        mock.mockError = AIAnalysisError.invalidAPIKey
+        let dummyImage = NSImage(size: NSSize(width: 10, height: 10))
+        let metadata = PDFMetadata(
+            title: nil, author: nil, creator: nil, producer: nil,
+            creationDate: nil, modificationDate: nil, pdfVersion: "1.4",
+            pageCount: 1, fileSizeBytes: 500, isEncrypted: false, colorProfiles: []
+        )
+        let pageMetadata = PDFPageMetadata(
+            pageNumber: 0, widthPt: 612, heightPt: 792,
+            rotation: 0, fontNames: [], imageCount: 0
+        )
+
+        do {
+            _ = try await mock.inspect(
+                image: dummyImage, metadata: metadata, pageMetadata: pageMetadata
+            )
+            Issue.record("Expected error")
+        } catch {
+            #expect(error is AIAnalysisError)
+        }
+    }
+
     @Test("encodeImageToBase64 produces valid base64 string")
     func encodesImage() throws {
         let image = NSImage(size: NSSize(width: 100, height: 100))
