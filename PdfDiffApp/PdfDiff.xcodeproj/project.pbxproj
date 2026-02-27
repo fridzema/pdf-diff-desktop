@@ -34,10 +34,13 @@
 		866C8837698A1D26002E126D /* ReportGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8FACFC447E96D1E13D1599E /* ReportGenerator.swift */; };
 		871C395B3BEFEC1AC8687390 /* CompareViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B9C335A91C41966C1D481A9 /* CompareViewModel.swift */; };
 		8B17542925A6B87D8070A1F5 /* InspectorViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B666FF55F468B98420A83C7 /* InspectorViewModelTests.swift */; };
+		A53D11A4E2CCF1DFB56A359F /* BatchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D709348B7EFBFF1A36CC3EE4 /* BatchViewModel.swift */; };
 		A765190B5C4BA889042DB47D /* AnimatedOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C17C596E3C86A3757721FF6 /* AnimatedOverlayView.swift */; };
 		AB70D3E63629F28ED625FB1B /* PreflightService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7145EB89DE8C60C7AC063459 /* PreflightService.swift */; };
+		B3103B766934BE9DE74876BC /* BatchComparison.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C246F8EF1E1D2BDCCB8DA22 /* BatchComparison.swift */; };
 		B65B94662211B9BBDBC5D03E /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55BA9171CDFD6AD19480A414 /* AppViewModel.swift */; };
 		B70B5956FE723C0C31812D1A /* SeparationViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 280BEB03E04BFEE2B35BC2E3 /* SeparationViewer.swift */; };
+		BBF046C871DE31B8AAA2ABCE /* BatchComparisonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97DA3BF53E684E623DC5C63 /* BatchComparisonTests.swift */; };
 		BF79DA1FB3032E27DA4DFD56 /* OnionSkinView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDDDC320643C06F9D1FD587B /* OnionSkinView.swift */; };
 		BF8ADD3017BC30982E0BC3E7 /* DocumentSlotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83C03E8C07191677AC6865CA /* DocumentSlotView.swift */; };
 		C4F8276379F69F8F3635A6D2 /* DiffOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4631FD223E666C564AC10B1B /* DiffOverlayView.swift */; };
@@ -83,6 +86,7 @@
 		4BE047E858E193938ADE3CB6 /* DetectedBarcode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectedBarcode.swift; sourceTree = "<group>"; };
 		55BA9171CDFD6AD19480A414 /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
 		580D70F19B3ECC9026DE228B /* InspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorView.swift; sourceTree = "<group>"; };
+		5C246F8EF1E1D2BDCCB8DA22 /* BatchComparison.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchComparison.swift; sourceTree = "<group>"; };
 		64AB377671A26CAAE6EE8AE3 /* DiffSummaryPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffSummaryPanel.swift; sourceTree = "<group>"; };
 		7145EB89DE8C60C7AC063459 /* PreflightService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreflightService.swift; sourceTree = "<group>"; };
 		772CE2B31528F775DA5FA1C9 /* AIAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAnalysisService.swift; sourceTree = "<group>"; };
@@ -99,10 +103,12 @@
 		A8FACFC447E96D1E13D1599E /* ReportGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportGenerator.swift; sourceTree = "<group>"; };
 		AEE8F1A72C0C8F4E3154D291 /* InspectionSidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectionSidebar.swift; sourceTree = "<group>"; };
 		B2CBED07D22A55DD226D11F7 /* SwipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeView.swift; sourceTree = "<group>"; };
+		B97DA3BF53E684E623DC5C63 /* BatchComparisonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchComparisonTests.swift; sourceTree = "<group>"; };
 		BC088AA51C8E6AFF896B81D9 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		C6936AEB51B1F7438206E560 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CDD30C9A987EC36BF62B760A /* IssuePinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssuePinView.swift; sourceTree = "<group>"; };
 		CDDDC320643C06F9D1FD587B /* OnionSkinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnionSkinView.swift; sourceTree = "<group>"; };
+		D709348B7EFBFF1A36CC3EE4 /* BatchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchViewModel.swift; sourceTree = "<group>"; };
 		DA6C6605C56719739DE6BF5C /* MetadataPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataPanel.swift; sourceTree = "<group>"; };
 		DAA4F468F710B3455A7336D2 /* AIAnalysisServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAnalysisServiceTests.swift; sourceTree = "<group>"; };
 		DDFB9757F8158A466A5451BC /* InspectionResultTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectionResultTests.swift; sourceTree = "<group>"; };
@@ -163,6 +169,7 @@
 		52EFA17E199214DE793A0D65 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				B97DA3BF53E684E623DC5C63 /* BatchComparisonTests.swift */,
 				DDFB9757F8158A466A5451BC /* InspectionResultTests.swift */,
 				0BB7F27C75C0164016254263 /* PreflightResultTests.swift */,
 			);
@@ -187,6 +194,7 @@
 		8AEA84468BDF88E191FBC260 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				5C246F8EF1E1D2BDCCB8DA22 /* BatchComparison.swift */,
 				4BE047E858E193938ADE3CB6 /* DetectedBarcode.swift */,
 				8C6469B8D884510B40F333FA /* InspectionResult.swift */,
 				7D4830C40ADB67840E372882 /* PreflightResult.swift */,
@@ -254,6 +262,7 @@
 			isa = PBXGroup;
 			children = (
 				55BA9171CDFD6AD19480A414 /* AppViewModel.swift */,
+				D709348B7EFBFF1A36CC3EE4 /* BatchViewModel.swift */,
 				0B9C335A91C41966C1D481A9 /* CompareViewModel.swift */,
 				47A394809A868870EE4E9964 /* InspectorViewModel.swift */,
 				BC088AA51C8E6AFF896B81D9 /* SettingsManager.swift */,
@@ -351,6 +360,8 @@
 				4113EA009F9B9F70373D7682 /* AppView.swift in Sources */,
 				B65B94662211B9BBDBC5D03E /* AppViewModel.swift in Sources */,
 				0FEAFBCFC2428FDAEC0D839E /* BarcodeDetectionService.swift in Sources */,
+				B3103B766934BE9DE74876BC /* BatchComparison.swift in Sources */,
+				A53D11A4E2CCF1DFB56A359F /* BatchViewModel.swift in Sources */,
 				FCADE24878A6C5258E6C57A0 /* CompareView.swift in Sources */,
 				871C395B3BEFEC1AC8687390 /* CompareViewModel.swift in Sources */,
 				81C4CCD4FA07F3C69464341F /* DetectedBarcode.swift in Sources */,
@@ -390,6 +401,7 @@
 			files = (
 				3CF25DAD016534CA67C00ED6 /* AIAnalysisServiceTests.swift in Sources */,
 				8129485880D3FBE878DA8688 /* BarcodeDetectionServiceTests.swift in Sources */,
+				BBF046C871DE31B8AAA2ABCE /* BatchComparisonTests.swift in Sources */,
 				FEDC93342D88FBB44C9A4A5A /* CompareViewModelTests.swift in Sources */,
 				352BF48ECBBAD0119A6C2FC1 /* InspectionResultTests.swift in Sources */,
 				8B17542925A6B87D8070A1F5 /* InspectorViewModelTests.swift in Sources */,
