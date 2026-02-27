@@ -1,5 +1,6 @@
 import Foundation
 import AppKit
+import SwiftUI
 
 @Observable @MainActor
 final class InspectorViewModel {
@@ -26,6 +27,11 @@ final class InspectorViewModel {
     // Barcode state
     var detectedBarcodes: [DetectedBarcode] = []
     var showBarcodeOverlay = true
+
+    // Separation state
+    var showSeparations = false
+    var separationChannels: [ChannelInfo] = []
+    var isLoadingSeparations = false
 
     private let pdfService: PDFServiceProtocol
     private let preflightService = PreflightService()
@@ -127,6 +133,28 @@ final class InspectorViewModel {
             preflightResult = SwiftPreflightResult(checks: nonBarcodeChecks + barcodeChecks)
         } else {
             preflightResult = SwiftPreflightResult(checks: barcodeChecks)
+        }
+    }
+
+    func loadSeparations() async {
+        guard let image = renderedImage else { return }
+        isLoadingSeparations = true
+        defer { isLoadingSeparations = false }
+
+        let colors: [(String, NSColor)] = [
+            ("Cyan", NSColor.cyan),
+            ("Magenta", NSColor.magenta),
+            ("Yellow", NSColor.yellow),
+            ("Black", NSColor.black),
+        ]
+
+        separationChannels = colors.map { name, color in
+            ChannelInfo(
+                name: name,
+                color: Color(nsColor: color),
+                image: image, // Placeholder — real channels from Rust later
+                coverage: 0.0
+            )
         }
     }
 

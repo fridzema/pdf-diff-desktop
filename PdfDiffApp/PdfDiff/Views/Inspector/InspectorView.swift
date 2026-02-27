@@ -75,6 +75,18 @@ struct InspectorView: View {
             }
             .disabled(viewModel.currentPage >= (viewModel.document?.pageCount ?? 1) - 1)
 
+            Picker("", selection: $viewModel.showSeparations) {
+                Text("Page").tag(false)
+                Text("Separations").tag(true)
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 160)
+            .onChange(of: viewModel.showSeparations) { _, show in
+                if show && viewModel.separationChannels.isEmpty {
+                    Task { await viewModel.loadSeparations() }
+                }
+            }
+
             Spacer()
 
             if viewModel.isInspecting {
@@ -129,7 +141,9 @@ struct InspectorView: View {
 
     @ViewBuilder
     private var pageCanvas: some View {
-        if viewModel.isRendering {
+        if viewModel.showSeparations {
+            SeparationViewer(channels: $viewModel.separationChannels)
+        } else if viewModel.isRendering {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let image = viewModel.renderedImage {
