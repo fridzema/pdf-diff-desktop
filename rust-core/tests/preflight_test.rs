@@ -3,6 +3,8 @@ mod helpers;
 use pdf_diff_core::engine::mupdf_engine::MuPdfEngine;
 use pdf_diff_core::engine::traits::PdfEngine;
 use pdf_diff_core::preflight::ink_coverage::compute_ink_coverage;
+use pdf_diff_core::preflight::page_checks::check_page_consistency;
+use pdf_diff_core::types::PreflightSeverity;
 
 #[test]
 fn test_ink_coverage_simple_pdf() {
@@ -34,4 +36,18 @@ fn test_ink_coverage_page_out_of_range() {
 
     let result = compute_ink_coverage(doc.as_ref(), 999, 72);
     assert!(result.is_err());
+}
+
+#[test]
+fn test_page_consistency_single_page() {
+    let fixture = helpers::fixture_path("simple.pdf");
+    if !fixture.exists() {
+        helpers::create_simple_pdf(&fixture);
+    }
+    let engine = MuPdfEngine::new();
+    let doc = engine.open(fixture.to_str().unwrap()).unwrap();
+
+    let checks = check_page_consistency(doc.as_ref()).unwrap();
+    // Single-page doc: should pass
+    assert!(checks.iter().all(|c| matches!(c.severity, PreflightSeverity::Pass)));
 }
