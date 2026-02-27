@@ -53,7 +53,7 @@ struct AnimatedOverlayView: View {
     }
 
     private var blinkControls: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: DesignTokens.Spacing.lg) {
             // Play/Pause
             Button {
                 isPlaying.toggle()
@@ -70,7 +70,7 @@ struct AnimatedOverlayView: View {
                         showingLeft = true
                     } label: {
                         Text("Left")
-                            .font(.caption)
+                            .font(DesignTokens.Typo.toolbarLabel)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
                             .background(showingLeft ? Color.accentColor : Color.clear)
@@ -83,7 +83,7 @@ struct AnimatedOverlayView: View {
                         showingLeft = false
                     } label: {
                         Text("Right")
-                            .font(.caption)
+                            .font(DesignTokens.Typo.toolbarLabel)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
                             .background(!showingLeft ? Color.accentColor : Color.clear)
@@ -99,12 +99,12 @@ struct AnimatedOverlayView: View {
             // Speed control
             HStack(spacing: 8) {
                 Text("Speed")
-                    .font(.caption)
+                    .font(DesignTokens.Typo.toolbarLabel)
                     .foregroundStyle(.secondary)
                 Slider(value: $blinkInterval, in: 0.3...2.0)
                     .frame(width: 100)
                 Text(String(format: "%.1fs", blinkInterval))
-                    .font(.caption.monospacedDigit())
+                    .font(DesignTokens.Typo.toolbarLabel.monospacedDigit())
                     .frame(width: 30)
             }
 
@@ -114,9 +114,9 @@ struct AnimatedOverlayView: View {
                 .foregroundStyle(showingLeft ? .blue : .orange)
                 .frame(width: 36)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .padding(.horizontal, DesignTokens.Spacing.md)
+        .padding(.vertical, DesignTokens.Spacing.sm)
+        .background(.bar)
     }
 
     private func startTimer() {

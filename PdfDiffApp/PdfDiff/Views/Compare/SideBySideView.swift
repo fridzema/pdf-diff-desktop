@@ -31,12 +31,12 @@ struct SideBySideView: View {
             if let label {
                 HStack {
                     Text(label)
-                        .font(.caption)
+                        .font(DesignTokens.Typo.toolbarLabel)
                         .foregroundStyle(.secondary)
                     if isIndependent {
                         Image(systemName: "lock.open.fill")
                             .font(.caption2)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(DesignTokens.Status.warn)
                     }
                 }
                 .padding(.vertical, 4)
@@ -58,7 +58,7 @@ struct SideBySideView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(.bar)
     }
 
     // MARK: - Modifier key monitoring

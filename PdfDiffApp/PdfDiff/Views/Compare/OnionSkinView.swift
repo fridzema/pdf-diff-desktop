@@ -32,24 +32,24 @@ struct OnionSkinView: View {
             Divider()
 
             // Opacity control bar
-            HStack(spacing: 12) {
+            HStack(spacing: DesignTokens.Spacing.md) {
                 Text("Left")
-                    .font(.caption)
+                    .font(DesignTokens.Typo.toolbarLabel)
                     .foregroundStyle(.secondary)
 
                 Slider(value: $opacity, in: 0...1)
 
                 Text("Right")
-                    .font(.caption)
+                    .font(DesignTokens.Typo.toolbarLabel)
                     .foregroundStyle(.secondary)
 
                 Text(String(format: "%.0f%%", opacity * 100))
-                    .font(.caption.monospacedDigit())
+                    .font(DesignTokens.Typo.toolbarLabel.monospacedDigit())
                     .frame(width: 36)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Color(nsColor: .controlBackgroundColor))
+            .padding(.horizontal, DesignTokens.Spacing.md)
+            .padding(.vertical, DesignTokens.Spacing.sm)
+            .background(.bar)
         }
     }
 }

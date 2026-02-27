@@ -60,19 +60,19 @@ struct SwipeView: View {
                     VStack {
                         HStack {
                             Text("Left")
-                                .font(.caption)
+                                .font(DesignTokens.Typo.toolbarLabel)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
                                 .background(.ultraThinMaterial)
-                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.sm))
                                 .padding(8)
                             Spacer()
                             Text("Right")
-                                .font(.caption)
+                                .font(DesignTokens.Typo.toolbarLabel)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
                                 .background(.ultraThinMaterial)
-                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.sm))
                                 .padding(8)
                         }
                         Spacer()
