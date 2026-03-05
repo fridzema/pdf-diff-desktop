@@ -19,16 +19,25 @@ pub fn extract_cmyk_channels(
     dpi: u32,
 ) -> Result<Vec<ChannelBitmap>, PdfError> {
     let rendered = doc.render_page(page, dpi, &RenderColorspace::Cmyk)?;
+    extract_cmyk_channels_from_bitmap(&rendered.bitmap, rendered.width, rendered.height)
+}
 
+/// Splits a pre-rendered CMYK bitmap into individual channel bitmaps.
+/// Avoids redundant rendering when the bitmap is already available.
+pub fn extract_cmyk_channels_from_bitmap(
+    bitmap: &[u8],
+    width: u32,
+    height: u32,
+) -> Result<Vec<ChannelBitmap>, PdfError> {
     // MuPDF CMYK pixmap: 5 bytes per pixel (C, M, Y, K, A)
     let bpp = 5;
-    let pixel_count = (rendered.width * rendered.height) as usize;
+    let pixel_count = (width * height) as usize;
 
-    if rendered.bitmap.len() < pixel_count * bpp {
+    if bitmap.len() < pixel_count * bpp {
         return Err(PdfError::RenderingFailed {
             detail: format!(
                 "CMYK bitmap size mismatch: {} bytes for {}x{} (expected {})",
-                rendered.bitmap.len(), rendered.width, rendered.height, pixel_count * bpp
+                bitmap.len(), width, height, pixel_count * bpp
             ),
         });
     }
@@ -41,7 +50,7 @@ pub fn extract_cmyk_channels(
         let mut sum: f64 = 0.0;
 
         for i in 0..pixel_count {
-            let value = rendered.bitmap[i * bpp + ch_idx];
+            let value = bitmap[i * bpp + ch_idx];
             channel_data.push(value);
             sum += value as f64;
         }
@@ -51,8 +60,8 @@ pub fn extract_cmyk_channels(
         channels.push(ChannelBitmap {
             name: name.to_string(),
             bitmap: channel_data,
-            width: rendered.width,
-            height: rendered.height,
+            width,
+            height,
             coverage_percent: coverage,
         });
     }

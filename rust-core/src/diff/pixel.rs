@@ -1,3 +1,5 @@
+use rayon::prelude::*;
+
 use crate::engine::traits::PdfDocumentHandle;
 use crate::error::PdfError;
 use crate::types::*;
@@ -24,6 +26,7 @@ pub fn compute_pixel_diff(
 }
 
 /// Pure bitmap comparison — no PDF dependency, fully unit-testable.
+/// Uses rayon for parallel processing of pixel rows.
 pub fn compute_pixel_diff_from_bitmaps(
     left: &[u8],
     right: &[u8],
@@ -34,47 +37,74 @@ pub fn compute_pixel_diff_from_bitmaps(
     let pixel_count = (width * height) as u64;
     let bytes_per_pixel = 4u32; // RGBA
     let threshold = (sensitivity * 255.0) as u16;
-
-    let mut diff_bitmap = vec![0u8; left.len()];
-    let mut changed_pixel_count: u64 = 0;
+    let row_bytes = (width * bytes_per_pixel) as usize;
 
     // Track bounding boxes of changed regions using a simple grid
     let grid_size = 32u32;
     let grid_w = (width + grid_size - 1) / grid_size;
     let grid_h = (height + grid_size - 1) / grid_size;
+
+    // Process rows in parallel using rayon
+    let row_results: Vec<(Vec<u8>, u64, Vec<(u32, u32)>)> = (0..height)
+        .into_par_iter()
+        .map(|y| {
+            let row_start = (y * width * bytes_per_pixel) as usize;
+            let row_end = row_start + row_bytes;
+
+            // Bounds check
+            if row_end > left.len() || row_end > right.len() {
+                return (vec![0u8; row_bytes], 0u64, Vec::new());
+            }
+
+            let left_row = &left[row_start..row_end];
+            let right_row = &right[row_start..row_end];
+            let mut diff_row = vec![0u8; row_bytes];
+            let mut row_changed: u64 = 0;
+            let mut grid_hits: Vec<(u32, u32)> = Vec::new();
+
+            for x in 0..width {
+                let idx = (x * bytes_per_pixel) as usize;
+                if idx + 3 >= row_bytes {
+                    break;
+                }
+
+                let dr = (left_row[idx] as i16 - right_row[idx] as i16).unsigned_abs();
+                let dg = (left_row[idx + 1] as i16 - right_row[idx + 1] as i16).unsigned_abs();
+                let db = (left_row[idx + 2] as i16 - right_row[idx + 2] as i16).unsigned_abs();
+                let max_diff = dr.max(dg).max(db);
+
+                if max_diff > threshold {
+                    row_changed += 1;
+                    diff_row[idx] = 255;     // R
+                    diff_row[idx + 1] = 0;   // G
+                    diff_row[idx + 2] = 0;   // B
+                    diff_row[idx + 3] = 180; // A
+
+                    let gx = x / grid_size;
+                    let gy = y / grid_size;
+                    grid_hits.push((gx, gy));
+                } else {
+                    diff_row[idx] = left_row[idx] / 3;
+                    diff_row[idx + 1] = left_row[idx + 1] / 3;
+                    diff_row[idx + 2] = left_row[idx + 2] / 3;
+                    diff_row[idx + 3] = 255;
+                }
+            }
+
+            (diff_row, row_changed, grid_hits)
+        })
+        .collect();
+
+    // Merge results
+    let mut diff_bitmap = Vec::with_capacity(left.len());
+    let mut changed_pixel_count: u64 = 0;
     let mut grid_changed = vec![false; (grid_w * grid_h) as usize];
 
-    for y in 0..height {
-        for x in 0..width {
-            let idx = ((y * width + x) * bytes_per_pixel) as usize;
-
-            if idx + 3 >= left.len() || idx + 3 >= right.len() {
-                break;
-            }
-
-            let dr = (left[idx] as i16 - right[idx] as i16).unsigned_abs();
-            let dg = (left[idx + 1] as i16 - right[idx + 1] as i16).unsigned_abs();
-            let db = (left[idx + 2] as i16 - right[idx + 2] as i16).unsigned_abs();
-            let max_diff = dr.max(dg).max(db);
-
-            if max_diff > threshold {
-                changed_pixel_count += 1;
-                // Mark diff pixel as red with semi-transparency
-                diff_bitmap[idx] = 255;     // R
-                diff_bitmap[idx + 1] = 0;   // G
-                diff_bitmap[idx + 2] = 0;   // B
-                diff_bitmap[idx + 3] = 180; // A
-
-                let gx = x / grid_size;
-                let gy = y / grid_size;
-                grid_changed[(gy * grid_w + gx) as usize] = true;
-            } else {
-                // Unchanged pixel: dim version of original
-                diff_bitmap[idx] = left[idx] / 3;
-                diff_bitmap[idx + 1] = left[idx + 1] / 3;
-                diff_bitmap[idx + 2] = left[idx + 2] / 3;
-                diff_bitmap[idx + 3] = 255;
-            }
+    for (diff_row, row_changed, grid_hits) in row_results {
+        diff_bitmap.extend_from_slice(&diff_row);
+        changed_pixel_count += row_changed;
+        for (gx, gy) in grid_hits {
+            grid_changed[(gy * grid_w + gx) as usize] = true;
         }
     }
 

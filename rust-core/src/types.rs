@@ -1,6 +1,6 @@
 use uniffi;
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq, uniffi::Enum)]
 pub enum RenderColorspace {
     Rgb,
     Cmyk,

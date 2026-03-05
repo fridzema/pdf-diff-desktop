@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::num::NonZeroUsize;
+use lru::LruCache;
 use mupdf::{Document, MetadataName};
 use crate::engine::traits::{PdfEngine, PdfDocumentHandle};
 use crate::error::PdfError;
@@ -34,6 +37,7 @@ impl PdfEngine for MuPdfEngine {
             doc,
             _path: path.to_string(),
             file_size,
+            render_cache: RefCell::new(LruCache::new(NonZeroUsize::new(20).unwrap())),
         }))
     }
 }
@@ -42,6 +46,7 @@ struct MuPdfDocument {
     doc: Document,
     _path: String,
     file_size: u64,
+    render_cache: RefCell<LruCache<(u32, u32, RenderColorspace), RenderedPage>>,
 }
 
 // MuPDF Document is not Send/Sync by default, but we only access it
@@ -82,6 +87,16 @@ impl PdfDocumentHandle for MuPdfDocument {
             return Err(PdfError::PageOutOfRange { requested: page, total });
         }
 
+        let cache_key = (page, dpi, colorspace.clone());
+
+        // Check cache first
+        {
+            let mut cache = self.render_cache.borrow_mut();
+            if let Some(cached) = cache.get(&cache_key) {
+                return Ok(cached.clone());
+            }
+        }
+
         let pdf_page = self.doc.load_page(page as i32).map_err(|e| {
             PdfError::RenderingFailed { detail: e.to_string() }
         })?;
@@ -102,12 +117,17 @@ impl PdfDocumentHandle for MuPdfDocument {
         let height = pixmap.height();
         let samples = pixmap.samples().to_vec();
 
-        Ok(RenderedPage {
+        let result = RenderedPage {
             bitmap: samples,
             width,
             height,
             colorspace: colorspace.clone(),
-        })
+        };
+
+        // Store in cache
+        self.render_cache.borrow_mut().put(cache_key, result.clone());
+
+        Ok(result)
     }
 
     fn pages_metadata(&self) -> Result<Vec<PageMetadata>, PdfError> {

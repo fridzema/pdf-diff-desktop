@@ -11,8 +11,18 @@ pub fn compute_ink_coverage(
     dpi: u32,
 ) -> Result<InkCoverageResult, PdfError> {
     let rendered = doc.render_page(page, dpi, &RenderColorspace::Cmyk)?;
+    compute_ink_coverage_from_bitmap(&rendered.bitmap, rendered.width, rendered.height, page)
+}
 
-    let pixel_count = (rendered.width * rendered.height) as usize;
+/// Computes ink coverage from a pre-rendered CMYK bitmap.
+/// Avoids redundant rendering when the bitmap is already available.
+pub fn compute_ink_coverage_from_bitmap(
+    bitmap: &[u8],
+    width: u32,
+    height: u32,
+    page: u32,
+) -> Result<InkCoverageResult, PdfError> {
+    let pixel_count = (width * height) as usize;
     if pixel_count == 0 {
         return Err(PdfError::RenderingFailed {
             detail: "Empty rendered page".to_string(),
@@ -21,12 +31,12 @@ pub fn compute_ink_coverage(
 
     // MuPDF CMYK pixmap with alpha: 5 bytes per pixel (C, M, Y, K, A)
     // Without alpha: 4 bytes per pixel (C, M, Y, K)
-    let bytes_per_pixel = rendered.bitmap.len() / pixel_count;
+    let bytes_per_pixel = bitmap.len() / pixel_count;
     if bytes_per_pixel < 4 {
         return Err(PdfError::RenderingFailed {
             detail: format!(
                 "CMYK bitmap size mismatch: {} bytes for {} pixels ({} bpp)",
-                rendered.bitmap.len(), pixel_count, bytes_per_pixel
+                bitmap.len(), pixel_count, bytes_per_pixel
             ),
         });
     }
@@ -39,10 +49,10 @@ pub fn compute_ink_coverage(
 
     for i in 0..pixel_count {
         let offset = i * bytes_per_pixel;
-        let c = rendered.bitmap[offset] as f64 / 255.0 * 100.0;
-        let m = rendered.bitmap[offset + 1] as f64 / 255.0 * 100.0;
-        let y = rendered.bitmap[offset + 2] as f64 / 255.0 * 100.0;
-        let k = rendered.bitmap[offset + 3] as f64 / 255.0 * 100.0;
+        let c = bitmap[offset] as f64 / 255.0 * 100.0;
+        let m = bitmap[offset + 1] as f64 / 255.0 * 100.0;
+        let y = bitmap[offset + 2] as f64 / 255.0 * 100.0;
+        let k = bitmap[offset + 3] as f64 / 255.0 * 100.0;
         sum_c += c;
         sum_m += m;
         sum_y += y;

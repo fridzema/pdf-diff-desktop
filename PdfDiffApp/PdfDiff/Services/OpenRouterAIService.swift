@@ -34,9 +34,12 @@ final class OpenRouterAIService: AIAnalysisServiceProtocol, @unchecked Sendable 
         diffResult: PDFDiffResult,
         structuralDiff: PDFStructuralDiffResult
     ) async throws -> AIAnalysisResult {
-        let leftB64 = try Self.encodeImageToBase64(left, maxBytes: 1_000_000)
-        let rightB64 = try Self.encodeImageToBase64(right, maxBytes: 1_000_000)
-        let diffB64 = try Self.encodeImageToBase64(diff, maxBytes: 1_000_000)
+        let (leftB64, rightB64, diffB64) = try await Task.detached {
+            let l = try Self.encodeImageToBase64(left, maxBytes: 1_000_000)
+            let r = try Self.encodeImageToBase64(right, maxBytes: 1_000_000)
+            let d = try Self.encodeImageToBase64(diff, maxBytes: 1_000_000)
+            return (l, r, d)
+        }.value
 
         let contextText = Self.buildContextText(
             leftText: leftText, rightText: rightText,
@@ -100,7 +103,9 @@ final class OpenRouterAIService: AIAnalysisServiceProtocol, @unchecked Sendable 
     func inspect(
         image: NSImage, metadata: PDFMetadata, pageMetadata: PDFPageMetadata
     ) async throws -> InspectionResult {
-        let imageB64 = try Self.encodeImageToBase64(image, maxBytes: 1_000_000)
+        let imageB64 = try await Task.detached {
+            try Self.encodeImageToBase64(image, maxBytes: 1_000_000)
+        }.value
         let contextText = Self.buildInspectionContext(metadata: metadata, pageMetadata: pageMetadata)
         let requestBody = Self.buildInspectionRequestBody(model: model, imageB64: imageB64, contextText: contextText)
 

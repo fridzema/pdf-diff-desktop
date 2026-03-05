@@ -10,6 +10,8 @@ crate-type = ["lib", "staticlib", "cdylib"]
 uniffi = { version = "0.29", features = ["cli"] }
 mupdf = "0.6"
 thiserror = "2"
+rayon = "1"
+lru = "0.12"
 
 [build-dependencies]
 uniffi = { version = "0.29", features = ["build"] }
@@ -21,3 +23,8 @@ tempfile = "3"
 [[bin]]
 name = "uniffi-bindgen"
 path = "uniffi-bindgen.rs"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"

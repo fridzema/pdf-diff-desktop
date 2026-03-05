@@ -5,7 +5,7 @@ pub mod separations;
 use crate::engine::traits::PdfDocumentHandle;
 use crate::error::PdfError;
 use crate::types::{PreflightResult, PreflightSummary, PreflightCheck, PreflightSeverity,
-                   PreflightCategory};
+                   PreflightCategory, RenderColorspace};
 
 /// Runs all Rust-side preflight checks on a document.
 /// `dpi`: Resolution for rendering-based checks (72 is fine for ink coverage).
@@ -21,28 +21,44 @@ pub fn run_preflight(
     checks.extend(page_checks::check_page_consistency(doc)?);
 
     // Ink coverage (per page, cap at 10 pages for speed)
+    // Render CMYK once per page and reuse for both ink coverage and separations
     let page_count = doc.page_count();
     for page in 0..page_count.min(10) {
-        match ink_coverage::compute_ink_coverage(doc, page, dpi) {
-            Ok(ink) => {
-                let severity = if ink.total > max_ink_limit + 40.0 {
-                    PreflightSeverity::Fail
-                } else if ink.total > max_ink_limit {
-                    PreflightSeverity::Warn
-                } else {
-                    PreflightSeverity::Pass
-                };
+        match doc.render_page(page, dpi, &RenderColorspace::Cmyk) {
+            Ok(rendered) => {
+                match ink_coverage::compute_ink_coverage_from_bitmap(
+                    &rendered.bitmap, rendered.width, rendered.height, page
+                ) {
+                    Ok(ink) => {
+                        let severity = if ink.total > max_ink_limit + 40.0 {
+                            PreflightSeverity::Fail
+                        } else if ink.total > max_ink_limit {
+                            PreflightSeverity::Warn
+                        } else {
+                            PreflightSeverity::Pass
+                        };
 
-                checks.push(PreflightCheck {
-                    category: PreflightCategory::InkCoverage,
-                    severity,
-                    title: format!("Page {} ink coverage", page + 1),
-                    detail: format!(
-                        "C:{:.1}% M:{:.1}% Y:{:.1}% K:{:.1}% — Max total: {:.1}%",
-                        ink.cyan, ink.magenta, ink.yellow, ink.black, ink.total
-                    ),
-                    page: Some(page),
-                });
+                        checks.push(PreflightCheck {
+                            category: PreflightCategory::InkCoverage,
+                            severity,
+                            title: format!("Page {} ink coverage", page + 1),
+                            detail: format!(
+                                "C:{:.1}% M:{:.1}% Y:{:.1}% K:{:.1}% — Max total: {:.1}%",
+                                ink.cyan, ink.magenta, ink.yellow, ink.black, ink.total
+                            ),
+                            page: Some(page),
+                        });
+                    }
+                    Err(e) => {
+                        checks.push(PreflightCheck {
+                            category: PreflightCategory::InkCoverage,
+                            severity: PreflightSeverity::Warn,
+                            title: format!("Page {} ink coverage failed", page + 1),
+                            detail: e.to_string(),
+                            page: Some(page),
+                        });
+                    }
+                }
             }
             Err(e) => {
                 checks.push(PreflightCheck {

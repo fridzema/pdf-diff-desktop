@@ -35,6 +35,7 @@ final class CompareViewModel {
     var aiResult: AIAnalysisResult?
     var isAnalyzing = false
     var aiError: String?
+    private var aiCache: [String: AIAnalysisResult] = [:]
 
     // Zoom state (shared across modes, persists on mode switch)
     var zoomLevel: CGFloat = 1.0
@@ -78,6 +79,7 @@ final class CompareViewModel {
     }
 
     func setDocuments(left: OpenedDocument, right: OpenedDocument) async {
+        clearStaleState()
         self.leftDocument = left
         self.rightDocument = right
         self.currentPage = 0
@@ -85,6 +87,7 @@ final class CompareViewModel {
     }
 
     func setLeftDocument(_ doc: OpenedDocument) {
+        clearStaleState()
         leftDocument = doc
         if hasDocuments {
             currentPage = 0
@@ -93,11 +96,22 @@ final class CompareViewModel {
     }
 
     func setRightDocument(_ doc: OpenedDocument) {
+        clearStaleState()
         rightDocument = doc
         if hasDocuments {
             currentPage = 0
             Task { await renderAndDiff() }
         }
+    }
+
+    private func clearStaleState() {
+        leftImage = nil
+        rightImage = nil
+        diffResult = nil
+        structuralDiff = nil
+        aiResult = nil
+        aiError = nil
+        aiCache.removeAll()
     }
 
     func clearLeftDocument() {
@@ -171,6 +185,13 @@ final class CompareViewModel {
               let diffRes = diffResult,
               let structDiff = structuralDiff else { return }
 
+        // Check cache
+        let cacheKey = "\(leftDocument?.path ?? ""):\(rightDocument?.path ?? ""):page\(currentPage)"
+        if let cached = aiCache[cacheKey] {
+            aiResult = cached
+            return
+        }
+
         let analysisService: AIAnalysisServiceProtocol
         if let service = service {
             analysisService = service
@@ -187,11 +208,13 @@ final class CompareViewModel {
         aiError = nil
 
         do {
-            aiResult = try await analysisService.analyze(
+            let result = try await analysisService.analyze(
                 left: left, right: right, diff: diffImage,
                 leftText: "", rightText: "",
                 diffResult: diffRes, structuralDiff: structDiff
             )
+            aiResult = result
+            aiCache[cacheKey] = result
         } catch {
             aiError = error.localizedDescription
         }
@@ -208,9 +231,15 @@ final class CompareViewModel {
         isComparing = true
         defer { isComparing = false }
 
+        let service = pdfService
+        let page = currentPage
+
         do {
-            let leftRendered = try pdfService.renderPage(document: left, page: currentPage, dpi: 150)
-            let rightRendered = try pdfService.renderPage(document: right, page: currentPage, dpi: 150)
+            let (leftRendered, rightRendered) = try await Task.detached {
+                let l = try service.renderPage(document: left, page: page, dpi: 150)
+                let r = try service.renderPage(document: right, page: page, dpi: 150)
+                return (l, r)
+            }.value
             self.leftImage = leftRendered.image
             self.rightImage = rightRendered.image
         } catch {
@@ -224,13 +253,22 @@ final class CompareViewModel {
     private func computeDiff() async {
         guard let left = leftDocument, let right = rightDocument else { return }
 
+        let service = pdfService
+        let page = currentPage
+        let sens = sensitivity
+
         do {
-            self.diffResult = try pdfService.computePixelDiff(
-                left: left, right: right,
-                page: currentPage, dpi: 150,
-                sensitivity: sensitivity
-            )
-            self.structuralDiff = try pdfService.computeStructuralDiff(left: left, right: right)
+            let (pixelDiff, structDiff) = try await Task.detached {
+                let pd = try service.computePixelDiff(
+                    left: left, right: right,
+                    page: page, dpi: 150,
+                    sensitivity: sens
+                )
+                let sd = try service.computeStructuralDiff(left: left, right: right)
+                return (pd, sd)
+            }.value
+            self.diffResult = pixelDiff
+            self.structuralDiff = structDiff
         } catch {
             self.errorMessage = error.localizedDescription
         }
