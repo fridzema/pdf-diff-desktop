@@ -2,7 +2,7 @@ import SwiftUI
 
 @main
 struct PdfDiffApp: App {
-    @State private var viewModel = AppViewModel(pdfService: MockPDFService())
+    @State private var viewModel = AppViewModel(pdfService: UniFFIPDFService())
     @State private var settingsManager = SettingsManager()
 
     var body: some Scene {

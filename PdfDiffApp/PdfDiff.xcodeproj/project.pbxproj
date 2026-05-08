@@ -21,6 +21,7 @@
 		434504459E14D82AEE1A23DC /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F33A19A29B4387088CAE843 /* KeychainHelper.swift */; };
 		4F6D52DF840E99B4D784EE42 /* RenderCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501E1A1B2A4B0725EACB1C54 /* RenderCache.swift */; };
 		50D5812C65CDD5171A92D8E1 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 127FD18EEEAC4FFCED5D9A46 /* OverlayView.swift */; };
+		59506C9D99FEEE94D2CEBB99 /* pdf_diff_core.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDCC0095873C42193EA000E7 /* pdf_diff_core.swift */; };
 		5E51049AB2261BAFA11A1F05 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D869FF43032F43D193103DC /* DesignTokens.swift */; };
 		61AFC91A5256B48BD23E1BDA /* SettingsManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB27468CB0C2BD34E2CE6C55 /* SettingsManagerTests.swift */; };
 		62D33FB1CA540B382102309A /* PreflightResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB7F27C75C0164016254263 /* PreflightResultTests.swift */; };
@@ -28,6 +29,7 @@
 		6DE833E93196308FAEF30058 /* ZoomToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01AA41F823AB1A55E0EF37E /* ZoomToolbar.swift */; };
 		6F0F986D16DEDD97EDDA8482 /* MetadataPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6C6605C56719739DE6BF5C /* MetadataPanel.swift */; };
 		70D0AA8F7976DDB79B226E76 /* PreflightServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96502848E6239CF8F4A0D948 /* PreflightServiceTests.swift */; };
+		730B263544F7876FB597A5CB /* UniFFIPDFService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D8CBBFAABB03844B9BCBFE /* UniFFIPDFService.swift */; };
 		74ABAF950B9B26612EA1FA6B /* PageRendererView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A382E2B342B449684C21E37 /* PageRendererView.swift */; };
 		74CF115FA86ABAA2E35CD782 /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 580D70F19B3ECC9026DE228B /* InspectorView.swift */; };
 		7DB777C6F21BF2DD89BD17E7 /* InspectionResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C6469B8D884510B40F333FA /* InspectionResult.swift */; };
@@ -53,6 +55,7 @@
 		CBAB5566EE1213299F7C8335 /* MockPDFService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8A55FEE6AF4BAC7771126BE /* MockPDFService.swift */; };
 		D4CF69AE1D4BFDF15C731836 /* AIAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 772CE2B31528F775DA5FA1C9 /* AIAnalysisService.swift */; };
 		E11093510B6514226F11F4C3 /* SwipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2CBED07D22A55DD226D11F7 /* SwipeView.swift */; };
+		E60E49F4E4A9E815008B94B0 /* libpdf_diff_core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 471F0100FC0D4D3EEC9ED674 /* libpdf_diff_core.a */; };
 		E668D2F8AD4410037794BE3A /* InspectionSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEE8F1A72C0C8F4E3154D291 /* InspectionSidebar.swift */; };
 		EB6735745D2BAD0C11625CD7 /* ZoomableContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F625D96B4EE406BBE6ABA67C /* ZoomableContainer.swift */; };
 		ECB050DD822615F15DFC30E2 /* SideBySideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84AAA7C587367E564AF9B07B /* SideBySideView.swift */; };
@@ -87,6 +90,7 @@
 		428765335EE84FF77D906DD5 /* PdfDiffTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PdfDiffTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4381494DF0321594583CECC3 /* KeychainHelperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelperTests.swift; sourceTree = "<group>"; };
 		4631FD223E666C564AC10B1B /* DiffOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffOverlayView.swift; sourceTree = "<group>"; };
+		471F0100FC0D4D3EEC9ED674 /* libpdf_diff_core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpdf_diff_core.a; path = "../rust-core/target/aarch64-apple-darwin/release/libpdf_diff_core.a"; sourceTree = "<group>"; };
 		47A394809A868870EE4E9964 /* InspectorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorViewModel.swift; sourceTree = "<group>"; };
 		492601FBC94DC685BEB23088 /* PDFServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFServiceProtocol.swift; sourceTree = "<group>"; };
 		4BE047E858E193938ADE3CB6 /* DetectedBarcode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectedBarcode.swift; sourceTree = "<group>"; };
@@ -94,6 +98,7 @@
 		55BA9171CDFD6AD19480A414 /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
 		580D70F19B3ECC9026DE228B /* InspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorView.swift; sourceTree = "<group>"; };
 		5C246F8EF1E1D2BDCCB8DA22 /* BatchComparison.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchComparison.swift; sourceTree = "<group>"; };
+		60D8CBBFAABB03844B9BCBFE /* UniFFIPDFService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniFFIPDFService.swift; sourceTree = "<group>"; };
 		64AB377671A26CAAE6EE8AE3 /* DiffSummaryPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffSummaryPanel.swift; sourceTree = "<group>"; };
 		7145EB89DE8C60C7AC063459 /* PreflightService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreflightService.swift; sourceTree = "<group>"; };
 		772CE2B31528F775DA5FA1C9 /* AIAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAnalysisService.swift; sourceTree = "<group>"; };
@@ -105,6 +110,7 @@
 		8C6469B8D884510B40F333FA /* InspectionResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectionResult.swift; sourceTree = "<group>"; };
 		8D869FF43032F43D193103DC /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		924DF56761C91AFB592D093F /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		94F853CB695796F24DA1819B /* PdfDiff-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PdfDiff-Bridging-Header.h"; sourceTree = "<group>"; };
 		96502848E6239CF8F4A0D948 /* PreflightServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreflightServiceTests.swift; sourceTree = "<group>"; };
 		9CE9F91025EEF4C275B47486 /* PreflightPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreflightPanel.swift; sourceTree = "<group>"; };
 		A7E89AE72CEAB4DF99E6CCDA /* PdfDiff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PdfDiff.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -115,6 +121,7 @@
 		BC088AA51C8E6AFF896B81D9 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		C01AA41F823AB1A55E0EF37E /* ZoomToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomToolbar.swift; sourceTree = "<group>"; };
 		C6936AEB51B1F7438206E560 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		CDCC0095873C42193EA000E7 /* pdf_diff_core.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = pdf_diff_core.swift; sourceTree = "<group>"; };
 		CDD30C9A987EC36BF62B760A /* IssuePinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssuePinView.swift; sourceTree = "<group>"; };
 		CDDDC320643C06F9D1FD587B /* OnionSkinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnionSkinView.swift; sourceTree = "<group>"; };
 		D709348B7EFBFF1A36CC3EE4 /* BatchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchViewModel.swift; sourceTree = "<group>"; };
@@ -125,11 +132,23 @@
 		E8A55FEE6AF4BAC7771126BE /* MockPDFService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockPDFService.swift; sourceTree = "<group>"; };
 		EB27468CB0C2BD34E2CE6C55 /* SettingsManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManagerTests.swift; sourceTree = "<group>"; };
 		F17C1A35E881037856C0F58D /* BatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchView.swift; sourceTree = "<group>"; };
+		F1C0E0C85741C120864BEEAA /* PdfDiff.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PdfDiff.entitlements; sourceTree = "<group>"; };
 		F2DEB4B711846BB5124DF2EB /* OpenRouterAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterAIService.swift; sourceTree = "<group>"; };
 		F580459C0C79B269E6563CD0 /* CompareViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompareViewModelTests.swift; sourceTree = "<group>"; };
 		F625D96B4EE406BBE6ABA67C /* ZoomableContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomableContainer.swift; sourceTree = "<group>"; };
 		F9A629553284DE20F7CCEF20 /* PdfDiffApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfDiffApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7661BCDC65B22EFE6C8037B9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E60E49F4E4A9E815008B94B0 /* libpdf_diff_core.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		0504558FCDD705AAD2377DFA /* Inspector */ = {
@@ -169,8 +188,10 @@
 		224F27FB7984706E9D1903DC = {
 			isa = PBXGroup;
 			children = (
+				FAA1E0C34EBC085873966EF9 /* generated */,
 				D676DDBCB052C291AF6C7B43 /* PdfDiff */,
 				94A363050DFD2D7DE2B1B477 /* PdfDiffTests */,
+				B7FAE6FFE693FFE92A1B1A06 /* Frameworks */,
 				C56645B401EBF7C73EEC524C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -207,6 +228,7 @@
 				7145EB89DE8C60C7AC063459 /* PreflightService.swift */,
 				501E1A1B2A4B0725EACB1C54 /* RenderCache.swift */,
 				A8FACFC447E96D1E13D1599E /* ReportGenerator.swift */,
+				60D8CBBFAABB03844B9BCBFE /* UniFFIPDFService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -260,6 +282,14 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
+		B7FAE6FFE693FFE92A1B1A06 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				471F0100FC0D4D3EEC9ED674 /* libpdf_diff_core.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		BB82F4CFF54CE8715766E27D /* Components */ = {
 			isa = PBXGroup;
 			children = (
@@ -297,6 +327,8 @@
 			children = (
 				8D869FF43032F43D193103DC /* DesignTokens.swift */,
 				C6936AEB51B1F7438206E560 /* Info.plist */,
+				94F853CB695796F24DA1819B /* PdfDiff-Bridging-Header.h */,
+				F1C0E0C85741C120864BEEAA /* PdfDiff.entitlements */,
 				F9A629553284DE20F7CCEF20 /* PdfDiffApp.swift */,
 				8AEA84468BDF88E191FBC260 /* Models */,
 				6C9130B1C433E824498289E2 /* Services */,
@@ -304,6 +336,15 @@
 				1095A77E5BF10AAA64A8EDAA /* Views */,
 			);
 			path = PdfDiff;
+			sourceTree = "<group>";
+		};
+		FAA1E0C34EBC085873966EF9 /* generated */ = {
+			isa = PBXGroup;
+			children = (
+				CDCC0095873C42193EA000E7 /* pdf_diff_core.swift */,
+			);
+			name = generated;
+			path = ../generated;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -332,6 +373,7 @@
 			buildConfigurationList = C53E7BC392C28B38DB3BE9DC /* Build configuration list for PBXNativeTarget "PdfDiff" */;
 			buildPhases = (
 				3B0B6BE50FC5DB64A10FF84F /* Sources */,
+				7661BCDC65B22EFE6C8037B9 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -352,9 +394,10 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+				};
 			};
 			buildConfigurationList = 666DC730201B5DD626E8BCE8 /* Build configuration list for PBXProject "PdfDiff" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -364,6 +407,7 @@
 			mainGroup = 224F27FB7984706E9D1903DC;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
+			productRefGroup = C56645B401EBF7C73EEC524C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -418,8 +462,10 @@
 				2E54E90A8AACAC8E135BBCE5 /* SettingsView.swift in Sources */,
 				ECB050DD822615F15DFC30E2 /* SideBySideView.swift in Sources */,
 				E11093510B6514226F11F4C3 /* SwipeView.swift in Sources */,
+				730B263544F7876FB597A5CB /* UniFFIPDFService.swift in Sources */,
 				6DE833E93196308FAEF30058 /* ZoomToolbar.swift in Sources */,
 				EB6735745D2BAD0C11625CD7 /* ZoomableContainer.swift in Sources */,
+				59506C9D99FEEE94D2CEBB99 /* pdf_diff_core.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -611,19 +657,29 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = PdfDiff/PdfDiff.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"../rust-core/target/aarch64-apple-darwin/release\"",
+				);
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../generated";
 				INFOPLIST_FILE = PdfDiff/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/../rust-core/target/aarch64-apple-darwin/release";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 0.1.0;
+				OTHER_LDFLAGS = "-lc++";
 				PRODUCT_BUNDLE_IDENTIFIER = com.pdfdiff.PdfDiff;
 				PRODUCT_NAME = PdfDiff;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "PdfDiff/PdfDiff-Bridging-Header.h";
 				SWIFT_VERSION = 5.10;
 			};
 			name = Release;
@@ -632,19 +688,29 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = PdfDiff/PdfDiff.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"../rust-core/target/aarch64-apple-darwin/release\"",
+				);
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../generated";
 				INFOPLIST_FILE = PdfDiff/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/../rust-core/target/aarch64-apple-darwin/release";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 0.1.0;
+				OTHER_LDFLAGS = "-lc++ -Xlinker -undefined -Xlinker dynamic_lookup";
 				PRODUCT_BUNDLE_IDENTIFIER = com.pdfdiff.PdfDiff;
 				PRODUCT_NAME = PdfDiff;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "PdfDiff/PdfDiff-Bridging-Header.h";
 				SWIFT_VERSION = 5.10;
 			};
 			name = Debug;

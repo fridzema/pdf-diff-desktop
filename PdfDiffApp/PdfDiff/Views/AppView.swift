@@ -3,6 +3,9 @@ import UniformTypeIdentifiers
 
 struct AppView: View {
     @State var viewModel: AppViewModel
+    @Environment(SettingsManager.self) private var settingsManager
+    @AppStorage("hasShownOnboarding") private var hasShownOnboarding = false
+    @State private var showOnboarding = false
 
     var body: some View {
         NavigationSplitView {
@@ -22,6 +25,33 @@ struct AppView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
+        .onAppear {
+            if !hasShownOnboarding && settingsManager.apiKeyStatus == .unconfigured {
+                showOnboarding = true
+                hasShownOnboarding = true
+            }
+        }
+        .sheet(isPresented: $showOnboarding) {
+            OnboardingSheet(isPresented: $showOnboarding)
+        }
+    }
+}
+
+struct OnboardingSheet: View {
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("AI Features Setup")
+                .font(.headline)
+            Text("PDF Diff uses OpenRouter for AI-generated analysis reports. Add your API key in Settings (⌘,) to enable it.\n\nComparison, inspection, and preflight work fully without an API key.")
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+            Button("Got it") { isPresented = false }
+                .buttonStyle(.borderedProminent)
+        }
+        .padding(28)
+        .frame(width: 380)
     }
 }
 

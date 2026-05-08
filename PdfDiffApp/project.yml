@@ -12,8 +12,11 @@ targets:
     platform: macOS
     sources:
       - path: PdfDiff
-        excludes:
-          - "**/*.xcassets"
+      - path: ../generated/pdf_diff_core.swift
+        name: pdf_diff_core.swift
+    dependencies:
+      - framework: ../rust-core/target/aarch64-apple-darwin/release/libpdf_diff_core.a
+        embed: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.pdfdiff.PdfDiff
@@ -23,12 +26,23 @@ targets:
         MACOSX_DEPLOYMENT_TARGET: "26.0"
         SWIFT_VERSION: "5.10"
         INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.productivity"
+        CODE_SIGN_ENTITLEMENTS: PdfDiff/PdfDiff.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+        SWIFT_OBJC_BRIDGING_HEADER: PdfDiff/PdfDiff-Bridging-Header.h
+        HEADER_SEARCH_PATHS: $(SRCROOT)/../generated
+        LIBRARY_SEARCH_PATHS: $(SRCROOT)/../rust-core/target/aarch64-apple-darwin/release
+        OTHER_LDFLAGS: "-lc++"
+      configs:
+        Debug:
+          OTHER_LDFLAGS: "-lc++ -Xlinker -undefined -Xlinker dynamic_lookup"
     info:
       path: PdfDiff/Info.plist
       properties:
         CFBundleDisplayName: PDF Diff
         CFBundleName: PdfDiff
         CFBundlePackageType: APPL
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         LSMinimumSystemVersion: "26.0"
         CFBundleDocumentTypes:
           - CFBundleTypeName: PDF Document
