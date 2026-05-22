@@ -41,8 +41,10 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Building $REF_NAME (version=$VERSION)"
 
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_26.app
+      - name: Show Xcode version
+        run: |
+          ls /Applications | grep -i Xcode || true
+          xcodebuild -version
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
